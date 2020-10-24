@@ -1,7 +1,7 @@
 // ConsoleApplication1.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
+#include "stdio.h"
 
 /*p82 3.5*/
 
@@ -54,8 +54,7 @@ unsigned FindLightest(unsigned y, unsigned v[], unsigned w[], unsigned cnt){
 }
 
 
-int _tmain(int argc, _TCHAR* argv[])
-{
+int main(int argc, char* argv[]){
 
 	unsigned v[1+COINCNT] = { 0, 1, 4, 6, 8 };
 	unsigned w[1 + COINCNT] = { 0, 1, 2, 4, 6 };
