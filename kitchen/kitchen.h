@@ -1,12 +1,18 @@
 #pragma once
 
 #include<string>
+#include<list>
+#include<array>
+#include<unordered_map>
 
 using std::string;
+using std::list;
+using std::array;
+using std::unordered_map;
 
 enum temperature {
 
-    hot,
+    hot = 0,
     cold,
     fronze
 };
@@ -16,8 +22,13 @@ class order{
 
 public:
     int onDecay();
-
+    temperature getTemperature(){ return m_temp;}
 private:
+
+    unsigned int incAge(){
+        
+        return ++m_orderAge;
+    }
     string m_id;
     string m_name;
     temperature m_temp;
@@ -72,8 +83,63 @@ public:
 
 class shelf{
 
+public:
+    bool hasOrder(order*pOrder){
+        
+        if (m_index.find(pOrder) == m_index.end()) return false;
+        return true;
+    }
+
+    bool addOrder(order* pOrder){
+    
+        bool ret = false;
+
+        if (pOrder && !hasOrder(pOrder)){
+            
+           shelfInfo& info = m_info[pOrder->getTemperature()]; 
+
+           if (info.cnt < info.maxCnt){
+           
+                m_space.push_front(pOrder);
+                std::pair<order*, ItemType> item(pOrder, m_space.begin());
+                m_index.insert(item);
+                ret = true;
+           }
+        }
+        return ret;
+    } 
+
+    bool removeOrder(order* pOrder){
+        bool ret = false;
+
+        if ( hasOrder(pOrder)){
+            ItemType it = m_index.find(pOrder)->second;
+            m_space.erase(it);
+            m_index.erase(pOrder);
+            ret = true;
+        }
+        return ret;
+    }
+
+    void decay();
 private:
-    unsigned int m_capacity;
+//    unsigned int m_MaxCapacity;
+//    temperature m_tempe;
+//    unsigned int m_cnt;
+
+    list<order*> m_space;
+
+    typedef list<order*>::iterator ItemType;
+
+    unordered_map<order*, list<order*>::iterator> m_index;
+
+    struct shelfInfo{
+        temperature tempe;
+        unsigned int maxCnt;
+        unsigned int cnt;
+    }; 
+
+    std::array<shelfInfo, 3> m_info;
 };
 
 class kitchen{
@@ -83,5 +149,7 @@ public:
     int onCourier();
     int onTime();
 private:
-
+    bool putOrder();
+    int buildStorage();
+    bool showStatus();
 };

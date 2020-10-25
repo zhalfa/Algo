@@ -8,3 +8,5 @@ test : kitchen.o
 kitchen.o : kitchen.cpp
 	g++ -g -std=c++11 -c -I/home/zhangl/boost_bd/include kitchen.cpp -o kitchen.o
 
+clean:
+	rm *.o *.exe
