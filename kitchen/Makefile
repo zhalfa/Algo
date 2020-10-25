@@ -5,7 +5,7 @@ test : kitchen.o
 		-lboost_system -lboost_thread -lboost_log_setup -lpthread \
 		 $(dll) kitchen.o -o test 
 
-kitchen.o : kitchen.cpp
+kitchen.o : kitchen.cpp  kitchen.h
 	g++ -g -std=c++11 -c -I/home/zhangl/boost_bd/include kitchen.cpp -o kitchen.o
 
 clean:

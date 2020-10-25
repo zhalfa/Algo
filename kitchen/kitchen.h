@@ -81,7 +81,7 @@ public:
     int sendCourier();
 };
 
-class shelf{
+class storeShelf{
 
 public:
     bool hasOrder(order*pOrder){
@@ -101,37 +101,42 @@ public:
            if (info.cnt < info.maxCnt){
            
                 m_space.push_front(pOrder);
-                std::pair<order*, ItemType> item(pOrder, m_space.begin());
+                std::pair<order*, ItemIteratorType> item(pOrder, m_space.begin());
                 m_index.insert(item);
+
+                info.cnt ++;
                 ret = true;
            }
         }
         return ret;
     } 
 
-    bool removeOrder(order* pOrder){
-        bool ret = false;
+    order* removeOrder(order* pOrder){
+        order* ret = NULL;
 
         if ( hasOrder(pOrder)){
-            ItemType it = m_index.find(pOrder)->second;
+            ItemIteratorType it = m_index.find(pOrder)->second;
             m_space.erase(it);
             m_index.erase(pOrder);
-            ret = true;
+
+            shelfInfo& info = m_info[pOrder->getTemperature()]; 
+            info.cnt--;
+            ret = pOrder;
         }
         return ret;
     }
 
-    void decay();
+    void decay(){
+
+    }
+
 private:
-//    unsigned int m_MaxCapacity;
-//    temperature m_tempe;
-//    unsigned int m_cnt;
+
+    typedef list<order*>::iterator ItemIteratorType;
 
     list<order*> m_space;
 
-    typedef list<order*>::iterator ItemType;
-
-    unordered_map<order*, list<order*>::iterator> m_index;
+    unordered_map<order*, ItemIteratorType> m_index;
 
     struct shelfInfo{
         temperature tempe;
@@ -140,6 +145,72 @@ private:
     }; 
 
     std::array<shelfInfo, 3> m_info;
+};
+
+#include "boost/container/stable_vector.hpp"
+#include "boost/unordered_map.hpp"
+
+class storeOverflow{
+
+public:
+
+    bool hasOrder(order*pOrder){
+       
+        if (m_index.find(pOrder) == m_index.end() ) return false;
+        return true;
+    }
+
+    bool addOrder(order* pOrder, order** ppDiscard){
+        bool ret = false;
+        
+        if (pOrder && ppDiscard && !hasOrder(pOrder)){
+            
+           if ( m_cnt < m_maxCnt){
+
+               m_space.push_back(pOrder);
+               unsigned int index = m_space.size()-1;
+
+               OrderVectorIteratorType it = m_space.begin() + index;
+
+               boost::unordered_map<order*, OrderVectorIteratorType>::value_type item(pOrder, it);
+               m_index.insert(item);
+               *ppDiscard = NULL;
+               m_cnt ++;
+               ret = true;
+
+           }else{
+
+               size_t size = m_space.size();
+               size_t rand;//= random 0 ~ size-1
+               order* p = m_space[rand];
+               OrderVectorIteratorType it = m_index.find(p).second;
+               m_index.erase(p);
+
+               m_space[rand] = pOrder;
+               std::pair<order*, OrderVectorIteratorType> item(pOrder, it);
+               m_index.insert(item);
+               *ppDiscard = p;
+               ret = true;
+           }
+        }
+        return ret;
+    }
+
+    order* removeOrder(order* pOrder){
+        
+    //    if (hasOrder(pOrder))
+        return NULL;
+    }
+private:
+    typedef boost::container::stable_vector<order*> OrderVectorType;
+    typedef boost::container::stable_vector<order*>::iterator OrderVectorIteratorType;
+    
+    OrderVectorType m_space;
+
+    boost::unordered_map<order*, OrderVectorIteratorType> m_index;
+
+    unsigned int m_maxCnt;
+    unsigned int m_cnt;
 };
 
 class kitchen{
