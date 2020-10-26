@@ -1,12 +1,20 @@
-dll:=/home/zhangl/boost_bd/bin/cygboost_thread.dll 
+
+boost:=/home/zhangl/boost_bd
+cc:= g++
+flag:= -g -c -std=c++11 -I$(boost)/include
+
+boost_static:= -lboost_system -lboost_thread -lboost_log_setup -lpthread 
+dll:=$(boost)/bin/cygboost_thread.dll 
+
 
 test : kitchen.o
-	g++ -L/home/zhangl/boost_bd/lib \
-		-lboost_system -lboost_thread -lboost_log_setup -lpthread \
-		 $(dll) kitchen.o -o test 
+	$(cc) -L$(boost)/lib $(boost_static) $(dll) kitchen.o -o test 
+
+.cpp.o:
+	$(cc) $(flag) -c $< -o $@
 
 kitchen.o : kitchen.cpp  kitchen.h
-	g++ -g -std=c++11 -c -I/home/zhangl/boost_bd/include kitchen.cpp -o kitchen.o
+	$(cc) $(flag) kitchen.cpp -o kitchen.o
 
 clean:
 	rm *.o *.exe

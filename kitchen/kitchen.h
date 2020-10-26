@@ -5,6 +5,7 @@
 #include<array>
 #include<unordered_map>
 #include<cstdlib>
+#include<cassert>
 
 using std::string;
 using std::list;
@@ -44,10 +45,88 @@ private:
     unsigned int m_orderAge;
 };
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <fstream>
+
+
+class jsonProcessor{
+
+public:
+    jsonProcessor(string path): m_path(path), m_hasErr(false), m_cnt(0){
+
+    }
+
+    bool prepare(){
+
+        std::ifstream input(m_path);       
+        try{
+
+            boost::property_tree::json_parser::read_json(input, m_root);
+
+        }catch(boost::property_tree::json_parser::json_parser_error& e){   
+
+            m_hasErr = true;
+
+            return false;
+        }
+        
+        for(auto it = m_root.begin(); it != m_root.end(); it++ ){
+
+           m_cnt++;
+        }
+
+        m_it = m_root.begin();
+        return true;
+    }
+
+    order* getOrder(){
+
+        order* ret = NULL;
+
+        if (m_it != m_root.end() ) {
+
+            auto it = m_it;
+
+            string id = it->second.get<string>("id");
+            string name = it->second.get<string>("name");
+            string temp = it->second.get<string>("temp");
+            int shelfLife = it->second.get<int>("shelfLife");
+            float decayRate = it->second.get<float>("decayRate");
+
+            ret = new order(id, name, convertToTemperature(temp), shelfLife, decayRate);
+
+            m_it++;
+        }
+        return ret;
+    };
+
+private:
+
+    temperature convertToTemperature(string s ){
+
+        if ( s == "hot" ){
+            return hot;
+        }else if( s == "cold" ){
+            return cold;
+        }else if ( s == "frozen"){
+            return frozen;
+        }else{
+            return unknown;
+        }
+    }
+
+    string m_path;
+    boost::property_tree::ptree m_root;
+    boost::property_tree::ptree::iterator m_it;
+    bool m_hasErr;
+    size_t m_cnt;
+};
+
 class courier{
 
 private:
-    string m_orderId;
+    order* m_pOrder;
 };
 
 class kitchen;
@@ -163,6 +242,7 @@ private:
 class storeOverflow{
 
 public:
+    storeOverflow(size_t max): m_maxCnt(max), m_cnt(0){}
 
     bool hasOrder(order*pOrder){
        
@@ -181,6 +261,7 @@ public:
                unsigned int index = m_space.size()-1;
 
                OrderVectorIteratorType it = m_space.begin() + index;
+               assert(it != m_space.end());
 
                boost::unordered_map<order*, OrderVectorIteratorType>::value_type item(pOrder, it);
                m_index.insert(item);
@@ -191,13 +272,14 @@ public:
            }else{
 
                size_t size = m_space.size();
-               size_t rand = std::rand()%size;//= random 0 ~ size-1
+               size_t rand = std::rand()%size;// random 0 ~ size-1
                order* p = m_space[rand];
                OrderVectorIteratorType it = m_index.find(p)->second;
+               assert(it != m_space.end());
                m_index.erase(p);
 
                m_space[rand] = pOrder;
-               std::pair<order*, OrderVectorIteratorType> item(pOrder, it);
+               boost::unordered_map<order*, OrderVectorIteratorType>::value_type item(pOrder, it);
                m_index.insert(item);
                *ppDiscard = p;
                ret = true;
