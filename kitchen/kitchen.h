@@ -25,24 +25,28 @@ enum temperature {
 class order{
 
 public:
-    order(string id, string name, temperature temp, size_t shelfLife, float decayRate):
+    order(string id, string name, temperature temp, int shelfLife, float decayRate):
         m_id(id), m_name(name), m_temp(temp), m_shelfLife(shelfLife), m_decayRate(decayRate), m_orderAge(0) {
     }
 
-    int onDecay();
+    float decay(size_t modifier){
+
+        m_orderAge++;
+        
+        float val = m_shelfLife - m_orderAge - m_orderAge*m_decayRate*modifier;
+        val/= m_shelfLife;
+        return val;
+    }
+
     temperature getTemperature(){ return m_temp;}
 private:
 
-    unsigned int incAge(){
-        
-        return ++m_orderAge;
-    }
     string m_id;
     string m_name;
     temperature m_temp;
-    size_t m_shelfLife;
+    int m_shelfLife;
     float m_decayRate;
-    unsigned int m_orderAge;
+    size_t m_orderAge;
 };
 
 #include <boost/property_tree/ptree.hpp>
@@ -205,8 +209,8 @@ public:
             m_space.erase(it);
             m_index.erase(pOrder);
 
-            shelfInfo& info = m_info[pOrder->getTemperature()]; 
-            info.cnt--;
+            //shelfInfo& info = m_info[pOrder->getTemperature()]; 
+            m_cnt--;
             ret = pOrder;
         }
         return ret;
@@ -242,7 +246,12 @@ private:
 class storeOverflow{
 
 public:
-    storeOverflow(size_t max): m_maxCnt(max), m_cnt(0){}
+    storeOverflow(size_t max): m_maxCnt(max), m_cnt(0){
+
+        m_shelfDecayModifier = 2;
+    }
+
+    bool notEmpty(){return m_cnt;}
 
     bool hasOrder(order*pOrder){
        
@@ -296,11 +305,43 @@ public:
             OrderVectorIteratorType it = m_index.find(pOrder)->second;
             m_index.erase(pOrder);
             m_space.erase(it);
-            m_cnt --;
+            m_cnt--;
             ret = pOrder;
         }
         return ret;
     }
+    
+    size_t decay(std::list<order*>& rm_list){
+
+        if ( m_cnt == 0 ) return 0;
+
+        size_t size = m_space.size();
+        std::list<order*> list;
+
+        for ( auto i = 0; i < size; i++ ){
+
+            order* p = m_space[i];            
+            assert(p!=NULL);
+            if (p->decay(m_shelfDecayModifier)<= 0){
+                
+                list.push_back(p);
+            }
+        }
+        
+        size_t ret = list.size();
+        std::list<order*>::iterator it = list.begin();
+        std::list<order*>::iterator end = list.end();
+
+        while(it != end ){
+            order* p = *it;
+            assert(p != NULL);
+            removeOrder(p);
+            rm_list.push_back(p);
+        }
+
+        return ret;
+    } 
+    
 private:
     typedef boost::container::stable_vector<order*> OrderVectorType;
     typedef boost::container::stable_vector<order*>::iterator OrderVectorIteratorType;
@@ -311,6 +352,7 @@ private:
 
     unsigned int m_maxCnt;
     unsigned int m_cnt;
+    unsigned int m_shelfDecayModifier;
 };
 
 class kitchen{

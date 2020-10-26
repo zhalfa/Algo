@@ -23,15 +23,34 @@ void test_storeOverflow(){
 
     storeOverflow overflow(15);
 
+    size_t orderCnt= 0; 
+    size_t discardCnt = 0;
+
     order* p = NULL;
     while(p= orderSrc.getOrder()){
 
+        assert(p->getTemperature() != unknown);
+
+        orderCnt++;
+
         order* pDiscard;
 
-        overflow.addOrder(p, &pDiscard);
-        if(pDiscard)
+        if( overflow.addOrder(p, &pDiscard) ){
+
+        }
+        if(pDiscard){
             delete pDiscard;
+            discardCnt++;
+        }
     }
+    assert((orderCnt-discardCnt)==15);
+    
+    std::list<order*> rm_list;
+    while(overflow.notEmpty() ){
+
+        overflow.decay(rm_list);
+    }
+    
 }
 
 int main(){
