@@ -4,23 +4,30 @@
 #include<list>
 #include<array>
 #include<unordered_map>
+#include<cstdlib>
 
 using std::string;
 using std::list;
 using std::array;
 using std::unordered_map;
+using std::rand;
 
 enum temperature {
 
     hot = 0,
     cold,
-    fronze
+    frozen,
+    unknown
 };
 
 
 class order{
 
 public:
+    order(string id, string name, temperature temp, size_t shelfLife, float decayRate):
+        m_id(id), m_name(name), m_temp(temp), m_shelfLife(shelfLife), m_decayRate(decayRate), m_orderAge(0) {
+    }
+
     int onDecay();
     temperature getTemperature(){ return m_temp;}
 private:
@@ -32,8 +39,8 @@ private:
     string m_id;
     string m_name;
     temperature m_temp;
-    unsigned int m_decayRate;
-    signed   int m_shelfLife;
+    size_t m_shelfLife;
+    float m_decayRate;
     unsigned int m_orderAge;
 };
 
@@ -96,15 +103,15 @@ public:
 
         if (pOrder && !hasOrder(pOrder)){
             
-           shelfInfo& info = m_info[pOrder->getTemperature()]; 
+           //shelfInfo& info = m_info[pOrder->getTemperature()]; 
 
-           if (info.cnt < info.maxCnt){
+           if (m_cnt < m_maxCnt){
            
                 m_space.push_front(pOrder);
                 std::pair<order*, ItemIteratorType> item(pOrder, m_space.begin());
                 m_index.insert(item);
 
-                info.cnt ++;
+                m_cnt ++;
                 ret = true;
            }
         }
@@ -145,6 +152,9 @@ private:
     }; 
 
     std::array<shelfInfo, 3> m_info;
+    temperature m_tempe;
+    unsigned int m_maxCnt;
+    unsigned int m_cnt;
 };
 
 #include "boost/container/stable_vector.hpp"
@@ -181,9 +191,9 @@ public:
            }else{
 
                size_t size = m_space.size();
-               size_t rand;//= random 0 ~ size-1
+               size_t rand = std::rand()%size;//= random 0 ~ size-1
                order* p = m_space[rand];
-               OrderVectorIteratorType it = m_index.find(p).second;
+               OrderVectorIteratorType it = m_index.find(p)->second;
                m_index.erase(p);
 
                m_space[rand] = pOrder;
@@ -197,9 +207,17 @@ public:
     }
 
     order* removeOrder(order* pOrder){
-        
-    //    if (hasOrder(pOrder))
-        return NULL;
+        order* ret = NULL;        
+
+        if (hasOrder(pOrder)){
+
+            OrderVectorIteratorType it = m_index.find(pOrder)->second;
+            m_index.erase(pOrder);
+            m_space.erase(it);
+            m_cnt --;
+            ret = pOrder;
+        }
+        return ret;
     }
 private:
     typedef boost::container::stable_vector<order*> OrderVectorType;
