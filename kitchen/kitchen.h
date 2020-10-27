@@ -571,16 +571,95 @@ private:
 
 struct courier{
 
+    courier(size_t seconds, order* pOrder): m_pickupTime(seconds), m_pOrder(pOrder){
+
+    }
     boost::chrono::seconds m_pickupTime; 
     const order* m_pOrder;
 };
 
+struct compare_courier{
+
+    bool operator()(const courier& left, const courier& right) const {
+
+        return left.m_pickupTime > right.m_pickupTime;
+    }
+};
+
+#include "boost/heap/priority_queue.hpp"
+
 class courierDispatcher{
 
 public:
-    int onCourier();
-    int sendCourier();
-    void run();
+    bool onCourier(courier cr){
+        MutexType lock(m_mtx);
+        return putCourier(cr);
+    }
+
+    void start(){
+
+        MutexType lock(m_mtx);
+        m_start = true;
+
+        boost::thread thr([this](){
+                
+                this->run();
+            }
+        );
+        m_thread = boost::move(thr);
+    }
+    
+    void close(){
+        
+        m_mtx.lock();
+        m_start = false;
+        m_mtx.unlock();
+        m_thread.join();
+    }
+
+    void run(){
+
+        while(m_start){
+            {
+                MutexType lock(m_mtx);
+                work();
+            }   
+            boost::this_thread::sleep_for(boost::chrono::seconds(1));
+        }   
+    }
+
+private:
+
+    virtual void work(){
+
+        while(m_space.size()){
+            
+            courier tmp = getCourier();
+            tmp;
+        }
+    }
+
+    courier getCourier(){
+
+        courier ret(0,NULL);
+
+        if ( m_space.size()){
+
+            ret = m_space.top();
+            m_space.pop();
+        }
+        return ret;
+    }
+
+    bool putCourier(courier cr){
+        m_space.push(cr);
+        return true;
+    }
+
+    boost::heap::priority_queue<courier, boost::heap::compare<compare_courier>> m_space;
+    boost::mutex m_mtx;
+    boost::thread m_thread;
+    bool m_start;
 };
 
 class orderIngester{

@@ -149,8 +149,26 @@ void test_kitchen(){
 
 }
 
-int main(){
+void test_courierDispatcher(){
+    
+    courierDispatcher dispatcher;
+    
+    dispatcher.start();
 
+    dispatcher.onCourier(courier(3,NULL));
+    dispatcher.onCourier(courier(3,NULL));
+    dispatcher.onCourier(courier(2,NULL));
+    dispatcher.onCourier(courier(2,NULL));
+    dispatcher.onCourier(courier(1,NULL));
+    dispatcher.onCourier(courier(1,NULL));
+
+    dispatcher.close();
+}
+
+int main(){
+    
+    test_courierDispatcher();
+    
     test_kitchen();
 
     test_storeShelf();
