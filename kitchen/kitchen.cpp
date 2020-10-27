@@ -64,12 +64,59 @@ void test_storeOverflow(){
     }
 }
 
+void test_storeShelf(){
+
+    jsonProcessor orderSrc("/home/zhangl/orders.json"); 
+    orderSrc.prepare();
+
+    const size_t capacity = 10;
+    storeShelf shelf( cold, capacity);
+
+    size_t orderCnt= 0; 
+    size_t discardCnt = 0;
+
+    order* p = NULL;
+    while(p= orderSrc.getOrder()){
+
+        assert(p->getTemperature() != unknown);
+
+        orderCnt++;
+
+        order* pDiscard;
+
+        if( shelf.addOrder(p) ){
+
+        }else{
+            delete p;
+            discardCnt++;
+        }
+    }
+    assert((orderCnt-discardCnt)==capacity);
+
+    std::list<order*> rm_list;
+    while(shelf.notEmpty() ){
+
+        shelf.decay(rm_list);
+    }
+    assert(rm_list.size()==capacity);    
+
+    std::list<order*>::iterator it = rm_list.begin();
+    std::list<order*>::iterator end = rm_list.end();
+
+    while(it != end ){
+        order* p = *it;
+        assert(p && (p->getTemperature() == cold));
+        delete p;
+        it++;
+    }
+}
+
 int main(){
 
-    test_storeOverflow();
+    test_storeShelf();
+    test_storeOverflow();//~storeOverflow need more
 
     test_getOder();
-
     test_orderfile_not_exist();
 
     kitchen *pKitchen;

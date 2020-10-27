@@ -169,11 +169,19 @@ class courierDispatcher{
 public:
     int onCourier();
     int sendCourier();
+    void run();
 };
 
 class storeShelf{
 
 public:
+    storeShelf(temperature temp, size_t max): m_temp(temp), m_maxCnt(max), m_cnt(0){
+
+        m_shelfDecayModifier = 1;
+    }
+
+    bool notEmpty(){return m_cnt;}
+
     bool hasOrder(order*pOrder){
         
         if (m_index.find(pOrder) == m_index.end()) return false;
@@ -184,10 +192,8 @@ public:
     
         bool ret = false;
 
-        if (pOrder && !hasOrder(pOrder)){
+        if (pOrder && !hasOrder(pOrder) && (pOrder->getTemperature() == m_temp)){
             
-           //shelfInfo& info = m_info[pOrder->getTemperature()]; 
-
            if (m_cnt < m_maxCnt){
            
                 m_space.push_front(pOrder);
@@ -209,18 +215,54 @@ public:
             m_space.erase(it);
             m_index.erase(pOrder);
 
-            //shelfInfo& info = m_info[pOrder->getTemperature()]; 
             m_cnt--;
             ret = pOrder;
         }
         return ret;
     }
 
-    void decay(){
+    size_t decay(std::list<order*>& rm_list){
 
+        return decayOrClean(rm_list);
     }
 
 private:
+    size_t decayOrClean(std::list<order*>& rm_list, bool decay=true){
+
+        if ( m_cnt == 0 ) return 0;
+
+        std::list<order*> list;
+
+        std::list<order*>::iterator it = m_space.begin();
+        std::list<order*>::iterator end = m_space.end();
+        for ( ; it != end; it++ ){
+
+            order* p = *it;            
+            assert(p);
+
+            if (!decay)
+                list.push_back(p);
+
+            if (decay && (p->decay(m_shelfDecayModifier)<= 0)){
+                
+                list.push_back(p);
+            }
+        }
+        
+        size_t ret = list.size();
+
+        it = list.begin();
+        end = list.end();
+        for ( ; it != end; it++ ){
+
+            order* p = *it;
+            assert(p);
+            removeOrder(p);
+            rm_list.push_back(p);
+        }
+
+        return ret;
+    } 
 
     typedef list<order*>::iterator ItemIteratorType;
 
@@ -234,10 +276,11 @@ private:
         unsigned int cnt;
     }; 
 
-    std::array<shelfInfo, 3> m_info;
-    temperature m_tempe;
+    //std::array<shelfInfo, 3> m_info;
+    temperature m_temp;
     unsigned int m_maxCnt;
     unsigned int m_cnt;
+    unsigned int m_shelfDecayModifier;
 };
 
 #include "boost/container/stable_vector.hpp"
@@ -329,15 +372,15 @@ public:
         }
         
         size_t ret = list.size();
+
         std::list<order*>::iterator it = list.begin();
         std::list<order*>::iterator end = list.end();
+        for ( ; it != end; it++ ){
 
-        while(it != end ){
             order* p = *it;
-            assert(p != NULL);
+            assert(p);
             removeOrder(p);
             rm_list.push_back(p);
-            it++;
         }
 
         return ret;
