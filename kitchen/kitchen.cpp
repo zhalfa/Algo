@@ -21,7 +21,8 @@ void test_storeOverflow(){
     jsonProcessor orderSrc("/home/zhangl/orders.json"); 
     orderSrc.prepare();
 
-    storeOverflow overflow(15);
+    const size_t capacity = 30;
+    storeOverflow overflow(capacity);
 
     size_t orderCnt= 0; 
     size_t discardCnt = 0;
@@ -43,14 +44,24 @@ void test_storeOverflow(){
             discardCnt++;
         }
     }
-    assert((orderCnt-discardCnt)==15);
+    assert((orderCnt-discardCnt)==capacity);
     
     std::list<order*> rm_list;
     while(overflow.notEmpty() ){
 
         overflow.decay(rm_list);
     }
-    
+    assert(rm_list.size()==capacity);    
+
+    std::list<order*>::iterator it = rm_list.begin();
+    std::list<order*>::iterator end = rm_list.end();
+
+    while(it != end ){
+        order* p = *it;
+        assert(p != NULL);
+        delete p;
+        it++;
+    }
 }
 
 int main(){

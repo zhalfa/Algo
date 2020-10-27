@@ -337,6 +337,7 @@ public:
             assert(p != NULL);
             removeOrder(p);
             rm_list.push_back(p);
+            it++;
         }
 
         return ret;
