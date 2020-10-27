@@ -352,6 +352,14 @@ private:
     unsigned int m_shelfDecayModifier;
 };
 
+#include "boost/thread/thread.hpp"
+#include "boost/thread/mutex.hpp"
+#include "boost/chrono.hpp"
+
+typedef boost::lock_guard<boost::mutex> MutexType;
+
+class courier;
+
 class kitchen{
 
 public: 
@@ -363,13 +371,14 @@ public:
     }
 
     bool init(){
+        MutexType lock(m_mtx);
         return buildStorage();
     }
 
     bool onOrder( order* pOrder ){
 
         if (!m_inUse || !pOrder) return false;
-        //lock obj
+        MutexType lock(m_mtx);
         if (!m_inUse ) return false;
 
         return putOrder(pOrder);
@@ -377,6 +386,7 @@ public:
     }
     
     size_t getOrdersCnt(){
+        MutexType lock(m_mtx);
         return showStatus();
     }
     
@@ -385,10 +395,18 @@ public:
     }
 
     void update(){
+        MutexType lock(m_mtx);
+        m_time++;
         decay();    
     }
 
-    int onCourier();
+    bool onCourier(courier* pCourier){
+
+        if (!m_inUse || !pCourier) return false;
+        MutexType lock(m_mtx);
+        if (!m_inUse ) return false;
+    }
+
     int onTime();
 private:
 
@@ -427,7 +445,7 @@ private:
         list.clear();
     }
 
-    //if do not discard any existing order, return true
+    //if no existing order is discarded, return true, otherwise return false
     bool putOrder(order* pOrder){
         bool ret = false;
 
@@ -541,6 +559,9 @@ private:
         return total;
     }
 
+    boost::chrono::seconds m_time;
+    boost::mutex m_mtx;
+
     ShelvesVectorType m_shelves;
     boost::unordered_map<temperature, ShelvesVectorIteratorType> m_index;
     storeOverflow* m_pOverflow;
@@ -548,10 +569,10 @@ private:
     size_t m_wasteCnt;
 };
 
-class courier{
+struct courier{
 
-private:
-    order* m_pOrder;
+    boost::chrono::seconds m_pickupTime; 
+    const order* m_pOrder;
 };
 
 class courierDispatcher{
