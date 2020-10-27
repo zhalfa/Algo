@@ -1,5 +1,5 @@
-#include"kitchen.h"
-
+#include "kitchen.h"
+#include <iostream> 
 
 void test_orderfile_not_exist(){
 
@@ -47,7 +47,7 @@ void test_storeOverflow(){
     assert((orderCnt-discardCnt)==capacity);
     
     std::list<order*> rm_list;
-    while(overflow.notEmpty() ){
+    while(overflow.getOrdersCnt() ){
 
         overflow.decay(rm_list);
     }
@@ -94,7 +94,7 @@ void test_storeShelf(){
     assert((orderCnt-discardCnt)==capacity);
 
     std::list<order*> rm_list;
-    while(shelf.notEmpty() ){
+    while(shelf.getOrdersCnt() ){
 
         shelf.decay(rm_list);
     }
@@ -111,8 +111,41 @@ void test_storeShelf(){
     }
 }
 
+void test_kitchen(){
+    
+    jsonProcessor orderSrc("/home/zhangl/orders.json"); 
+    orderSrc.prepare();
+
+    kitchen kit_test;
+    bool res = kit_test.init();
+    assert(res);
+
+    size_t orderCnt= 0; 
+    size_t discardCnt = 0;
+
+    order* p = NULL;
+    while(p= orderSrc.getOrder()){
+
+        assert(p->getTemperature() != unknown);
+
+        orderCnt++;
+
+        kit_test.onOrder(p);
+    }
+    
+    size_t cnt = kit_test.getOrdersCnt();
+    std::cout <<"orders count:"<< cnt << std::endl;
+
+    while(cnt = kit_test.getOrdersCnt()){
+        
+        kit_test.update();
+    }
+
+}
+
 int main(){
 
+    test_kitchen();
     test_storeShelf();
     test_storeOverflow();//~storeOverflow need more
 

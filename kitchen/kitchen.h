@@ -127,50 +127,6 @@ private:
     size_t m_cnt;
 };
 
-class courier{
-
-private:
-    order* m_pOrder;
-};
-
-class kitchen;
-class courierDispatcher;
-
-class orderIngester{
-public:
-    orderIngester(kitchen* pKitchen, courierDispatcher* pDispatcher): m_pKitchen(pKitchen), m_pDispatcher(pDispatcher){
-
-    }
-
-    int setFile(string& path){
-
-        m_path = path;
-        return 0;
-    }
-    int setRate(unsigned int rate){
-
-        m_rate = rate;
-        return 0;
-    }
-    int run();
-private:
-    int sendOrder(order*);
-    int arrangeCourier(courier*);
-    
-    string m_path;
-    unsigned int m_rate;
-
-    kitchen* m_pKitchen;
-    courierDispatcher* m_pDispatcher;
-};
-
-class courierDispatcher{
-
-public:
-    int onCourier();
-    int sendCourier();
-    void run();
-};
 
 class storeShelf{
 
@@ -180,7 +136,9 @@ public:
         m_shelfDecayModifier = 1;
     }
 
-    bool notEmpty(){return m_cnt;}
+    bool getOrdersCnt(){return m_cnt;}
+
+    temperature getTemperature(){return m_temp;}
 
     bool hasOrder(order*pOrder){
         
@@ -267,16 +225,8 @@ private:
     typedef list<order*>::iterator ItemIteratorType;
 
     list<order*> m_space;
-
     unordered_map<order*, ItemIteratorType> m_index;
 
-    struct shelfInfo{
-        temperature tempe;
-        unsigned int maxCnt;
-        unsigned int cnt;
-    }; 
-
-    //std::array<shelfInfo, 3> m_info;
     temperature m_temp;
     unsigned int m_maxCnt;
     unsigned int m_cnt;
@@ -286,6 +236,7 @@ private:
 #include "boost/container/stable_vector.hpp"
 #include "boost/unordered_map.hpp"
 
+
 class storeOverflow{
 
 public:
@@ -294,7 +245,7 @@ public:
         m_shelfDecayModifier = 2;
     }
 
-    bool notEmpty(){return m_cnt;}
+    bool getOrdersCnt(){return m_cnt;}
 
     bool hasOrder(order*pOrder){
        
@@ -315,7 +266,7 @@ public:
                OrderVectorIteratorType it = m_space.begin() + index;
                assert(it != m_space.end());
 
-               boost::unordered_map<order*, OrderVectorIteratorType>::value_type item(pOrder, it);
+               MapPairType item(pOrder, it);
                m_index.insert(item);
                *ppDiscard = NULL;
                m_cnt ++;
@@ -331,7 +282,7 @@ public:
                m_index.erase(p);
 
                m_space[rand] = pOrder;
-               boost::unordered_map<order*, OrderVectorIteratorType>::value_type item(pOrder, it);
+               MapPairType item(pOrder, it);
                m_index.insert(item);
                *ppDiscard = p;
                ret = true;
@@ -387,9 +338,11 @@ public:
     } 
     
 private:
+    
     typedef boost::container::stable_vector<order*> OrderVectorType;
     typedef boost::container::stable_vector<order*>::iterator OrderVectorIteratorType;
-    
+    typedef boost::unordered_map<order*, OrderVectorIteratorType>::value_type MapPairType; 
+
     OrderVectorType m_space;
 
     boost::unordered_map<order*, OrderVectorIteratorType> m_index;
@@ -402,11 +355,209 @@ private:
 class kitchen{
 
 public: 
-    int onOrder();
+    kitchen(): m_pOverflow(NULL), m_inUse(false){
+
+    }
+
+    bool init(){
+        return buildStorage();
+    }
+
+    bool onOrder( order* pOrder ){
+
+        if (!m_inUse || !pOrder) return false;
+        //lock obj
+        if (!m_inUse ) return false;
+
+        return putOrder(pOrder);
+
+    }
+    
+    size_t getOrdersCnt(){
+        return showStatus();
+    }
+
+    void update(){
+        decay();    
+    }
+
     int onCourier();
     int onTime();
 private:
-    bool putOrder();
-    int buildStorage();
-    bool showStatus();
+
+    typedef boost::container::stable_vector<storeShelf*> ShelvesVectorType;
+    typedef boost::container::stable_vector<storeShelf*>::iterator ShelvesVectorIteratorType;
+    typedef boost::unordered_map<temperature, ShelvesVectorIteratorType>::value_type MapPairType; 
+
+    //for following mumber functions, caller must be thread safe
+    
+    storeShelf* findShelf(order* pOrder){
+        storeShelf* ret = NULL;
+
+        if(pOrder){
+            temperature temp = pOrder->getTemperature();
+            ShelvesVectorIteratorType it = m_index.find(temp)->second; 
+            ret = *it;
+        }
+        return ret;
+    }
+    
+    void waste(order*& pOrder){
+        delete pOrder;
+        pOrder = NULL;
+    }
+
+    void destroy_orders(std::list<order*>& list ){
+
+        std::list<order*>::iterator it = list.begin();
+        std::list<order*>::iterator end = list.end();
+        for ( ; it != end; it++ ){
+
+            order* p = *it;
+            waste(p);
+        }
+        list.clear();
+    }
+
+    //if do not discard any existing order, return true
+    bool putOrder(order* pOrder){
+        bool ret = false;
+
+        storeShelf* shelf = findShelf(pOrder);
+        assert(shelf);
+
+        order* discard = NULL;
+        if (shelf->addOrder(pOrder)){
+
+            ret = true;
+
+        }else{
+            m_pOverflow->addOrder(pOrder, &discard);
+            if (discard){
+
+                storeShelf* shelf = findShelf(discard);
+                assert(shelf);
+                ret = shelf->addOrder(discard);
+                assert(!ret);
+                if (ret) discard = NULL;
+
+            }else{
+                ret = true;
+            }
+        }
+        if (discard) waste(discard);
+
+        return ret;
+    }
+
+    void decay(){
+
+        if (!m_inUse) return;
+
+        std::list<order*> rm_list;
+
+        ShelvesVectorIteratorType it = m_shelves.begin();
+        ShelvesVectorIteratorType end = m_shelves.end();
+        for ( ; it != end; it++ ){
+
+            storeShelf *shelf = *it;
+            assert(shelf);
+            shelf->decay(rm_list);
+        }
+        
+        m_pOverflow->decay(rm_list);
+
+        destroy_orders(rm_list);
+    }
+
+    bool buildStorage(){
+
+        if (m_inUse) return false;
+
+        m_shelves.push_back( new storeShelf(hot, 10) );       
+        m_shelves.push_back( new storeShelf(cold, 10) );       
+        m_shelves.push_back( new storeShelf(frozen, 10) );       
+
+        ShelvesVectorIteratorType it = m_shelves.begin();
+        ShelvesVectorIteratorType end = m_shelves.end();
+        for ( ; it != end; it++ ){
+
+            assert(*it);
+            temperature temp = (*it)->getTemperature();
+            MapPairType item(temp,it);
+            m_index.insert(item);
+        }
+
+        m_pOverflow = new storeOverflow(15);
+        if (m_pOverflow && m_shelves.size()){
+
+            m_inUse = true;
+        }          
+        return m_inUse;
+    }
+
+    size_t showStatus(){
+        size_t total = 0;
+
+        if (!m_inUse) return total;
+
+        ShelvesVectorIteratorType it = m_shelves.begin();
+        ShelvesVectorIteratorType end = m_shelves.end();
+        for ( ; it != end; it++ ){
+
+            storeShelf *shelf = *it;
+            total += shelf->getOrdersCnt();
+        }
+        total += m_pOverflow->getOrdersCnt();
+
+        return total;
+    }
+
+    ShelvesVectorType m_shelves;
+    boost::unordered_map<temperature, ShelvesVectorIteratorType> m_index;
+    storeOverflow* m_pOverflow;
+    bool m_inUse;
 };
+
+class courier{
+
+private:
+    order* m_pOrder;
+};
+
+class courierDispatcher{
+
+public:
+    int onCourier();
+    int sendCourier();
+    void run();
+};
+
+class orderIngester{
+public:
+    orderIngester(kitchen* pKitchen, courierDispatcher* pDispatcher): m_pKitchen(pKitchen), m_pDispatcher(pDispatcher){
+
+    }
+
+    int setFile(string& path){
+
+        m_path = path;
+        return 0;
+    }
+    int setRate(unsigned int rate){
+
+        m_rate = rate;
+        return 0;
+    }
+    int run();
+private:
+    int sendOrder(order*);
+    int arrangeCourier(courier*);
+    
+    string m_path;
+    unsigned int m_rate;
+
+    kitchen* m_pKitchen;
+    courierDispatcher* m_pDispatcher;
+};
+
