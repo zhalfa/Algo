@@ -136,7 +136,7 @@ public:
         m_shelfDecayModifier = 1;
     }
 
-    bool getOrdersCnt(){return m_cnt;}
+    size_t getOrdersCnt(){return m_cnt;}
 
     temperature getTemperature(){return m_temp;}
 
@@ -245,7 +245,7 @@ public:
         m_shelfDecayModifier = 2;
     }
 
-    bool getOrdersCnt(){return m_cnt;}
+    size_t getOrdersCnt(){return m_cnt;}
 
     bool hasOrder(order*pOrder){
        
@@ -355,8 +355,11 @@ private:
 class kitchen{
 
 public: 
-    kitchen(): m_pOverflow(NULL), m_inUse(false){
+    kitchen(): m_pOverflow(NULL), m_inUse(false), m_wasteCnt(0){
 
+    }
+    ~kitchen(){
+        clear();
     }
 
     bool init(){
@@ -375,6 +378,10 @@ public:
     
     size_t getOrdersCnt(){
         return showStatus();
+    }
+    
+    size_t getWasteCnt(){
+        return m_wasteCnt;
     }
 
     void update(){
@@ -403,6 +410,7 @@ private:
     }
     
     void waste(order*& pOrder){
+        m_wasteCnt++;
         delete pOrder;
         pOrder = NULL;
     }
@@ -496,6 +504,26 @@ private:
         return m_inUse;
     }
 
+    void clear(){
+
+        ShelvesVectorIteratorType it = m_shelves.begin();
+        ShelvesVectorIteratorType end = m_shelves.end();
+        for ( ; it != end; it++ ){
+            
+            storeShelf *p = *it;
+            assert(p);
+            delete p;
+        }
+        m_shelves.clear();
+        m_index.clear();
+
+        if (m_pOverflow){
+            delete m_pOverflow;
+            m_pOverflow = NULL;
+        }
+        m_inUse = false;
+    }
+
     size_t showStatus(){
         size_t total = 0;
 
@@ -517,6 +545,7 @@ private:
     boost::unordered_map<temperature, ShelvesVectorIteratorType> m_index;
     storeOverflow* m_pOverflow;
     bool m_inUse;
+    size_t m_wasteCnt;
 };
 
 class courier{

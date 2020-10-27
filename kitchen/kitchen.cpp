@@ -7,11 +7,12 @@ void test_orderfile_not_exist(){
     orderNoExist.prepare();
 }
 
-void test_getOder(){
+void test_getOrder(){
 
     jsonProcessor orderSrc("/home/zhangl/orders.json"); 
     orderSrc.prepare();
     order* p = orderSrc.getOrder();
+    assert(p);
 
     if (p) delete p;
 }
@@ -121,7 +122,6 @@ void test_kitchen(){
     assert(res);
 
     size_t orderCnt= 0; 
-    size_t discardCnt = 0;
 
     order* p = NULL;
     while(p= orderSrc.getOrder()){
@@ -132,24 +132,31 @@ void test_kitchen(){
 
         kit_test.onOrder(p);
     }
-    
+        
+    //std::cout <<"json orders count:"<< orderCnt << std::endl;
+
     size_t cnt = kit_test.getOrdersCnt();
-    std::cout <<"orders count:"<< cnt << std::endl;
+    assert(cnt==45);
 
     while(cnt = kit_test.getOrdersCnt()){
         
+        //std::cout <<"kitchen orders count:"<< cnt << std::endl;        
         kit_test.update();
     }
+    
+    cnt = kit_test.getWasteCnt();
+    assert(cnt == orderCnt);
 
 }
 
 int main(){
 
     test_kitchen();
+
     test_storeShelf();
     test_storeOverflow();//~storeOverflow need more
 
-    test_getOder();
+    test_getOrder();
     test_orderfile_not_exist();
 
     kitchen *pKitchen;
