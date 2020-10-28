@@ -185,9 +185,10 @@ void test_kitchen_thread(){
     
     jsonProcessor orderSrc("/home/zhangl/orders.json"); 
     orderSrc.prepare();
+    messageOutput log;
 
     kitchen kit_test;
-    bool res = kit_test.init();
+    bool res = kit_test.init(&log);
     assert(res);
 
     kit_test.start();

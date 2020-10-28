@@ -2,7 +2,6 @@
 
 #include<string>
 #include<list>
-#include<array>
 #include<unordered_map>
 #include<cstdlib>
 #include<cassert>
@@ -142,7 +141,6 @@ public:
 
 private:
 
-
     string m_path;
     boost::property_tree::ptree m_root;
     boost::property_tree::ptree::iterator m_it;
@@ -213,8 +211,9 @@ public:
         for (auto i: m_space){
             cnt++;        
             i->getOrderInfo(str);
-            str+= "----------------------\n";
         }
+        if (cnt)
+            str+= "----------------------\n";
         return cnt;
     }
 
@@ -319,6 +318,7 @@ public:
     }
 
     order* removeOrder(order* pOrder){
+
         order* ret = NULL;        
 
         if (hasOrder(pOrder)){
@@ -360,7 +360,19 @@ public:
 
         return ret;
     } 
-    
+
+    size_t getOrdersInfo(string& str){
+        size_t cnt = 0;
+
+        for( auto p : m_space ){
+            cnt++;
+            assert(p);
+            p->getOrderInfo(str);
+        }
+        if (cnt)
+            str+= "----------------------\n";
+        return cnt;
+    }    
 private:
     
     typedef boost::container::stable_vector<order*> OrderVectorType;
@@ -429,7 +441,47 @@ protected:
     bool m_start;
 };
 
-class courier;
+enum messageID{
+
+    msgUnknown = 0,
+    msgOrderReceived,
+    msgOrderPickuped,
+    msgOrderDiscarded,
+    msgOrderDecayed
+};
+
+class commonMessagerReceiver{
+public:
+    virtual void onMessage( messageID id, const string& str)=0;
+    virtual ~commonMessagerReceiver(){};
+};
+
+#include <iostream>
+
+class messageOutput: public commonMessagerReceiver {
+public:
+    virtual void onMessage( messageID id, const string& str){
+        std::cout <<"message id" << id << std::endl;
+        std::cout << str;
+    }
+};
+
+struct courier{
+
+    courier(size_t seconds, order* pOrder): m_pickupTime(seconds), m_pOrder(pOrder){
+
+    }
+    boost::chrono::seconds m_pickupTime; 
+    order* m_pOrder;
+};
+
+struct compare_courier{
+
+    bool operator()(const courier& left, const courier& right) const {
+
+        return left.m_pickupTime > right.m_pickupTime;
+    }
+};
 
 class kitchen: public commonThread {
 
@@ -441,8 +493,9 @@ public:
         clear();
     }
 
-    bool init(){
+    bool init(commonMessagerReceiver* pLog = NULL){
         MutexType lock(m_mtx);
+        m_pLog = pLog;
         return buildStorage();
     }
 
@@ -452,12 +505,15 @@ public:
         MutexType lock(m_mtx);
         if (!m_inUse ) return false;
 
-        return putOrder(pOrder);
+        bool ret = putOrder(pOrder);
+        getStatus(true);
+        if (m_pLog) m_pLog->onMessage(msgOrderReceived, m_logDetails);
+        return ret;
     }
     
     size_t getOrdersCnt(){
         MutexType lock(m_mtx);
-        return showStatus();
+        return getStatus();
     }
     
     size_t getWasteCnt(){
@@ -481,6 +537,12 @@ public:
         if (!m_inUse || !pCourier) return false;
         MutexType lock(m_mtx);
         if (!m_inUse ) return false;
+        order *p = pickUp(pCourier->m_pOrder);
+        if (p){
+            getStatus(true);
+            if (m_pLog) m_pLog->onMessage(msgOrderPickuped, m_logDetails);
+        }
+        return p;
     }
 
 private:
@@ -492,13 +554,24 @@ private:
         decay();
     }
     
-    virtual bool checkEmpty(){ return (showStatus()==0); }
+    virtual bool checkEmpty(){ return (getStatus()==0); }
 
     typedef boost::container::stable_vector<storeShelf*> ShelvesVectorType;
     typedef boost::container::stable_vector<storeShelf*>::iterator ShelvesVectorIteratorType;
     typedef boost::unordered_map<temperature, ShelvesVectorIteratorType>::value_type MapPairType; 
     
-    
+    order* pickUp(order* pOrder){
+
+        order* ret = m_pOverflow->removeOrder(pOrder);
+        if (!ret){
+            storeShelf *shelf = findShelf(pOrder);
+            assert(shelf);
+            ret = shelf->removeOrder(pOrder);
+        }
+
+        return ret;
+    } 
+
     storeShelf* findShelf(order* pOrder){
         storeShelf* ret = NULL;
 
@@ -571,6 +644,10 @@ private:
         
         m_pOverflow->decay(rm_list);
 
+        if (rm_list.size()){
+            getStatus(true);
+            if (m_pLog) m_pLog->onMessage(msgOrderDecayed, m_logDetails);
+        }
         destroy_orders(rm_list);
     }
 
@@ -617,19 +694,23 @@ private:
         m_inUse = false;
     }
 
-    size_t showStatus(){
+    size_t getStatus( bool orderDetails = false){
         size_t total = 0;
         if (!m_inUse) return total;
 
-        string details;
+        string& details = m_logDetails;
+        if (orderDetails) details.empty();
 
         for ( auto p: m_shelves){
 
             total += p->getOrdersCnt();
-            p->getOrdersInfo(details);
+            if (orderDetails)
+                p->getOrdersInfo(details);
         }
 
         total += m_pOverflow->getOrdersCnt();
+        if (orderDetails)
+            m_pOverflow->getOrdersInfo(details);
 
         return total;
     }
@@ -641,24 +722,10 @@ private:
     storeOverflow* m_pOverflow;
     bool m_inUse;
     size_t m_wasteCnt;
+    string m_logDetails;
+    commonMessagerReceiver* m_pLog;
 };
 
-struct courier{
-
-    courier(size_t seconds, order* pOrder): m_pickupTime(seconds), m_pOrder(pOrder){
-
-    }
-    boost::chrono::seconds m_pickupTime; 
-    const order* m_pOrder;
-};
-
-struct compare_courier{
-
-    bool operator()(const courier& left, const courier& right) const {
-
-        return left.m_pickupTime > right.m_pickupTime;
-    }
-};
 
 
 #include "boost/heap/priority_queue.hpp"
