@@ -154,6 +154,7 @@ void test_courierDispatcher(){
     courierDispatcher dispatcher;
     
     dispatcher.start();
+    assert(dispatcher.isEmpty());
 
     dispatcher.onCourier(courier(3,NULL));
     dispatcher.onCourier(courier(3,NULL));
@@ -161,8 +162,12 @@ void test_courierDispatcher(){
     dispatcher.onCourier(courier(2,NULL));
     dispatcher.onCourier(courier(1,NULL));
     dispatcher.onCourier(courier(1,NULL));
+
+    while( !dispatcher.isEmpty())
+        boost::this_thread::sleep_for(boost::chrono::seconds(9));
 
     dispatcher.close();
+    assert(dispatcher.isEmpty());
 }
 
 int main(){

@@ -358,6 +358,55 @@ private:
 
 typedef boost::lock_guard<boost::mutex> MutexType;
 
+class commonThread{
+
+public:
+    void start(){
+
+        MutexType lock(m_mtx);
+        m_start = true;
+
+        boost::thread thr([this](){
+                
+                this->run();
+            }
+        );
+        m_thread = boost::move(thr);
+    }
+    
+    void close(){
+        
+        m_mtx.lock();
+        m_start = false;
+        m_mtx.unlock();
+        m_thread.join();
+    }
+
+    bool isEmpty(){
+        MutexType lock(m_mtx);
+        return checkEmpty();
+    }
+
+    void run(){
+
+        while(m_start){
+            {
+                MutexType lock(m_mtx);
+                work();
+            }   
+            boost::this_thread::sleep_for(boost::chrono::seconds(1));
+        }   
+    }
+
+private:
+    virtual void work() = 0; 
+    virtual bool checkEmpty() = 0;
+protected:
+    boost::mutex m_mtx;
+    boost::thread m_thread;
+    bool m_start;
+};
+
 class courier;
 
 class kitchen{
@@ -586,48 +635,17 @@ struct compare_courier{
     }
 };
 
+
 #include "boost/heap/priority_queue.hpp"
 
-class courierDispatcher{
+class courierDispatcher: public commonThread {
 
 public:
     bool onCourier(courier cr){
         MutexType lock(m_mtx);
         return putCourier(cr);
     }
-
-    void start(){
-
-        MutexType lock(m_mtx);
-        m_start = true;
-
-        boost::thread thr([this](){
-                
-                this->run();
-            }
-        );
-        m_thread = boost::move(thr);
-    }
     
-    void close(){
-        
-        m_mtx.lock();
-        m_start = false;
-        m_mtx.unlock();
-        m_thread.join();
-    }
-
-    void run(){
-
-        while(m_start){
-            {
-                MutexType lock(m_mtx);
-                work();
-            }   
-            boost::this_thread::sleep_for(boost::chrono::seconds(1));
-        }   
-    }
-
 private:
 
     virtual void work(){
@@ -638,6 +656,8 @@ private:
             tmp;
         }
     }
+
+    virtual bool checkEmpty(){ return (m_space.size()==0); };
 
     courier getCourier(){
 
@@ -657,9 +677,6 @@ private:
     }
 
     boost::heap::priority_queue<courier, boost::heap::compare<compare_courier>> m_space;
-    boost::mutex m_mtx;
-    boost::thread m_thread;
-    bool m_start;
 };
 
 class orderIngester{
