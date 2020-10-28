@@ -5,6 +5,8 @@ void test_orderfile_not_exist(){
 
     jsonProcessor orderNoExist("/home/zhangl/_orders.json");
     orderNoExist.prepare();
+
+    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
 }
 
 void test_getOrder(){
@@ -15,6 +17,8 @@ void test_getOrder(){
     assert(p);
 
     if (p) delete p;
+
+    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
 }
 
 void test_storeOverflow(){
@@ -63,6 +67,8 @@ void test_storeOverflow(){
         delete p;
         it++;
     }
+
+    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
 }
 
 void test_storeShelf(){
@@ -110,6 +116,8 @@ void test_storeShelf(){
         delete p;
         it++;
     }
+
+    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
 }
 
 void test_kitchen(){
@@ -147,6 +155,7 @@ void test_kitchen(){
     cnt = kit_test.getWasteCnt();
     assert(cnt == orderCnt);
 
+    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
 }
 
 void test_courierDispatcher(){
@@ -166,12 +175,51 @@ void test_courierDispatcher(){
     while( !dispatcher.isEmpty())
         boost::this_thread::sleep_for(boost::chrono::seconds(9));
 
-    dispatcher.close();
+    dispatcher.stop();
     assert(dispatcher.isEmpty());
+
+    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
+}
+
+void test_kitchen_thread(){
+    
+    jsonProcessor orderSrc("/home/zhangl/orders.json"); 
+    orderSrc.prepare();
+
+    kitchen kit_test;
+    bool res = kit_test.init();
+    assert(res);
+
+    kit_test.start();
+
+    size_t orderCnt= 0; 
+
+    order* p = NULL;
+    while(p= orderSrc.getOrder()){
+
+        assert(p->getTemperature() != unknown);
+
+        orderCnt++;
+
+        kit_test.onOrder(p);
+    }
+        
+    size_t cnt = kit_test.getOrdersCnt();
+    
+    while( !kit_test.isEmpty())
+        boost::this_thread::sleep_for(boost::chrono::seconds(4));
+
+    kit_test.stop();
+    cnt = kit_test.getWasteCnt();
+    assert(cnt == orderCnt);
+
+    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
 }
 
 int main(){
-    
+
+    test_kitchen_thread();    
+
     test_courierDispatcher();
     
     test_kitchen();

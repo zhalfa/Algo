@@ -362,7 +362,6 @@ class commonThread{
 
 public:
     void start(){
-
         MutexType lock(m_mtx);
         m_start = true;
 
@@ -374,8 +373,7 @@ public:
         m_thread = boost::move(thr);
     }
     
-    void close(){
-        
+    void stop(){
         m_mtx.lock();
         m_start = false;
         m_mtx.unlock();
@@ -394,7 +392,7 @@ public:
                 MutexType lock(m_mtx);
                 work();
             }   
-            boost::this_thread::sleep_for(boost::chrono::seconds(1));
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
         }   
     }
 
@@ -409,7 +407,7 @@ protected:
 
 class courier;
 
-class kitchen{
+class kitchen: public commonThread {
 
 public: 
     kitchen(): m_pOverflow(NULL), m_inUse(false), m_wasteCnt(0){
@@ -431,7 +429,6 @@ public:
         if (!m_inUse ) return false;
 
         return putOrder(pOrder);
-
     }
     
     size_t getOrdersCnt(){
@@ -440,9 +437,11 @@ public:
     }
     
     size_t getWasteCnt(){
+        MutexType lock(m_mtx);
         return m_wasteCnt;
     }
 
+    //single thread unit test support
     void update(){
         MutexType lock(m_mtx);
         m_time++;
@@ -456,14 +455,21 @@ public:
         if (!m_inUse ) return false;
     }
 
-    int onTime();
 private:
+
+    //for following mumber functions, their caller must acquire mutex first
+    virtual void work(){
+
+        m_time++;
+        decay();
+    }
+    
+    virtual bool checkEmpty(){ return (showStatus()==0); }
 
     typedef boost::container::stable_vector<storeShelf*> ShelvesVectorType;
     typedef boost::container::stable_vector<storeShelf*>::iterator ShelvesVectorIteratorType;
     typedef boost::unordered_map<temperature, ShelvesVectorIteratorType>::value_type MapPairType; 
-
-    //for following mumber functions, caller must be thread safe
+    
     
     storeShelf* findShelf(order* pOrder){
         storeShelf* ret = NULL;
@@ -609,7 +615,6 @@ private:
     }
 
     boost::chrono::seconds m_time;
-    boost::mutex m_mtx;
 
     ShelvesVectorType m_shelves;
     boost::unordered_map<temperature, ShelvesVectorIteratorType> m_index;
