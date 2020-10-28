@@ -5,6 +5,10 @@
 #include<unordered_map>
 #include<cstdlib>
 #include<cassert>
+#include "boost/chrono.hpp"
+
+boost::chrono::milliseconds gTimeInterval(200);
+double gOrderAgeInc = 200.0f/1000; 
 
 using std::string;
 using std::list;
@@ -52,7 +56,7 @@ public:
 
     float decay(size_t modifier){
 
-        m_orderAge++;
+        m_orderAge+= gOrderAgeInc;
         
         float val = m_shelfLife - m_orderAge - m_orderAge*m_decayRate*modifier;
         val/= m_shelfLife;
@@ -83,7 +87,7 @@ private:
     temperature m_temp;
     int m_shelfLife;
     float m_decayRate;
-    size_t m_orderAge;
+    double m_orderAge;
 };
 
 #include <boost/property_tree/ptree.hpp>
@@ -98,7 +102,9 @@ public:
 
     }
 
-    bool prepare(){
+    bool prepare(string path = ""){
+        if (path != "")
+            m_path = path;
 
         std::ifstream input(m_path);       
         try{
@@ -390,7 +396,6 @@ private:
 
 #include "boost/thread/thread.hpp"
 #include "boost/thread/mutex.hpp"
-#include "boost/chrono.hpp"
 
 typedef boost::lock_guard<boost::mutex> MutexType;
 
@@ -428,7 +433,7 @@ public:
                 MutexType lock(m_mtx);
                 doWork();
             }   
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
+            boost::this_thread::sleep_for(gTimeInterval);
         }   
     }
 
@@ -440,6 +445,7 @@ protected:
     boost::thread m_thread;
     bool m_start;
 };
+
 
 enum messageID{
 
@@ -453,7 +459,6 @@ enum messageID{
 class commonMessagerReceiver{
 public:
     virtual void onMessage( messageID id, const string& str)=0;
-    virtual ~commonMessagerReceiver(){};
 };
 
 #include <iostream>
@@ -462,16 +467,15 @@ class messageOutput: public commonMessagerReceiver {
 public:
     virtual void onMessage( messageID id, const string& str){
         std::cout <<"message id" << id << std::endl;
-        std::cout << str;
+        //std::cout << str;
     }
 };
 
 struct courier{
+    courier() {} 
+    courier(size_t t, order* p): m_pickupTime(t), m_pOrder(p) {}
 
-    courier(size_t seconds, order* pOrder): m_pickupTime(seconds), m_pOrder(pOrder){
-
-    }
-    boost::chrono::seconds m_pickupTime; 
+    boost::chrono::milliseconds m_pickupTime; 
     order* m_pOrder;
 };
 
@@ -521,14 +525,14 @@ public:
         return m_wasteCnt;
     }
     
-    boost::chrono::seconds getTime(){
+    boost::chrono::milliseconds getTime(){
         return m_time;
     }
 
     //single thread unit test support
     void update(){
         MutexType lock(m_mtx);
-        m_time++;
+        m_time += gTimeInterval;
         decay();    
     }
 
@@ -550,7 +554,7 @@ private:
     //for following mumber functions, their caller must acquire mutex first
     virtual void doWork(){
 
-        m_time++;
+        m_time += gTimeInterval;
         decay();
     }
     
@@ -618,15 +622,17 @@ private:
                 storeShelf* shelf = findShelf(discard);
                 assert(shelf);
                 ret = shelf->addOrder(discard);
-                assert(!ret);
+                //assert(!ret);
                 if (ret) discard = NULL;
 
             }else{
                 ret = true;
             }
         }
-        if (discard) waste(discard);
-
+        if (discard){ 
+            waste(discard);
+            if (m_pLog) m_pLog->onMessage(msgOrderDiscarded, m_logDetails);
+        }
         return ret;
     }
 
@@ -715,7 +721,7 @@ private:
         return total;
     }
 
-    boost::chrono::seconds m_time;
+    boost::chrono::milliseconds m_time;
 
     ShelvesVectorType m_shelves;
     boost::unordered_map<temperature, ShelvesVectorIteratorType> m_index;
@@ -773,29 +779,53 @@ private:
 
 class orderIngester{
 public:
-    orderIngester(kitchen* pKitchen, courierDispatcher* pDispatcher): m_pKitchen(pKitchen), m_pDispatcher(pDispatcher){
+    orderIngester(kitchen* pKitchen, courierDispatcher* pDispatcher): m_pKitchen(pKitchen),
+         m_pDispatcher(pDispatcher), m_TimeInterval(500), m_json("") {
 
     }
 
-    int setFile(string& path){
+    bool setFile(string& path){
 
-        m_path = path;
-        return 0;
+        return m_jsonOK = m_json.prepare(path);
     }
+
     int setRate(unsigned int rate){
+        assert(rate < 1000);
 
-        m_rate = rate;
+        size_t t = 1000/rate; 
+        m_TimeInterval = boost::chrono::milliseconds(t); 
         return 0;
     }
-    int run();
+
+    void run(){
+
+        if (!m_jsonOK || !m_pDispatcher || !m_pKitchen ) return ;
+        order *p;
+        while ( p = m_json.getOrder()){
+            
+            m_pKitchen->onOrder(p);
+
+            courier tmp;
+            tmp.m_pOrder = p;
+            //random 2 ~ 6 seconds;
+            size_t random = std::rand()%7;
+            if (random < 2 ) random = 2;
+
+            tmp.m_pickupTime = m_pKitchen->getTime() + boost::chrono::milliseconds(1000*random);
+            m_pDispatcher->onCourier(tmp);
+
+            boost::this_thread::sleep_for(m_TimeInterval);
+        }
+    }
+
 private:
     int sendOrder(order*);
     int arrangeCourier(courier*);
-    
-    string m_path;
-    unsigned int m_rate;
-
     kitchen* m_pKitchen;
     courierDispatcher* m_pDispatcher;
+
+    boost::chrono::milliseconds m_TimeInterval;
+    jsonProcessor m_json;
+    bool m_jsonOK;    
 };
 
