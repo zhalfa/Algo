@@ -21,6 +21,28 @@ enum temperature {
     unknown
 };
 
+temperature convertToTemperature(string s ){
+
+    if ( s == "hot" ){
+        return hot;
+    }else if( s == "cold" ){
+        return cold;
+    }else if ( s == "frozen"){
+        return frozen;
+    }else{
+        return unknown;
+    }
+}
+
+string convertTemperatureToString(temperature temp){
+
+    switch(temp){
+        case hot: return "hot";
+        case cold:return "cold";
+        case frozen:return "frozen";
+        default: return "";
+    }
+}
 
 class order{
 
@@ -37,8 +59,24 @@ public:
         val/= m_shelfLife;
         return val;
     }
-
+    
     temperature getTemperature(){ return m_temp;}
+
+    void getOrderInfo(string& str){
+
+        str+= m_id;
+        str+= " : ";
+        str+= m_name;
+        str+= " : ";
+        str+= convertTemperatureToString(m_temp);
+        str+= " : ";
+        str+= std::to_string(m_shelfLife);
+        str+= " : ";
+        str+= std::to_string(m_decayRate);
+        str+= " : ";
+        str+= std::to_string(m_orderAge);
+        str+= "\n";
+    }
 private:
 
     string m_id;
@@ -75,10 +113,7 @@ public:
             return false;
         }
         
-        for(auto it = m_root.begin(); it != m_root.end(); it++ ){
-
-           m_cnt++;
-        }
+        for(auto i : m_root){ m_cnt++; }
 
         m_it = m_root.begin();
         return true;
@@ -107,18 +142,6 @@ public:
 
 private:
 
-    temperature convertToTemperature(string s ){
-
-        if ( s == "hot" ){
-            return hot;
-        }else if( s == "cold" ){
-            return cold;
-        }else if ( s == "frozen"){
-            return frozen;
-        }else{
-            return unknown;
-        }
-    }
 
     string m_path;
     boost::property_tree::ptree m_root;
@@ -183,6 +206,17 @@ public:
 
         return decayOrClean(rm_list);
     }
+    
+    size_t getOrdersInfo(string& str){
+        
+        size_t cnt = 0;
+        for (auto i: m_space){
+            cnt++;        
+            i->getOrderInfo(str);
+            str+= "----------------------\n";
+        }
+        return cnt;
+    }
 
 private:
     size_t decayOrClean(std::list<order*>& rm_list, bool decay=true){
@@ -191,11 +225,8 @@ private:
 
         std::list<order*> list;
 
-        std::list<order*>::iterator it = m_space.begin();
-        std::list<order*>::iterator end = m_space.end();
-        for ( ; it != end; it++ ){
+        for( auto p : m_space ){
 
-            order* p = *it;            
             assert(p);
 
             if (!decay)
@@ -209,11 +240,7 @@ private:
         
         size_t ret = list.size();
 
-        it = list.begin();
-        end = list.end();
-        for ( ; it != end; it++ ){
-
-            order* p = *it;
+        for( auto p : list ){ 
             assert(p);
             removeOrder(p);
             rm_list.push_back(p);
@@ -324,11 +351,8 @@ public:
         
         size_t ret = list.size();
 
-        std::list<order*>::iterator it = list.begin();
-        std::list<order*>::iterator end = list.end();
-        for ( ; it != end; it++ ){
+        for ( auto p : list ){
 
-            order* p = *it;
             assert(p);
             removeOrder(p);
             rm_list.push_back(p);
@@ -390,14 +414,14 @@ public:
         while(m_start){
             {
                 MutexType lock(m_mtx);
-                work();
+                doWork();
             }   
             boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
         }   
     }
 
 private:
-    virtual void work() = 0; 
+    virtual void doWork() = 0; 
     virtual bool checkEmpty() = 0;
 protected:
     boost::mutex m_mtx;
@@ -440,6 +464,10 @@ public:
         MutexType lock(m_mtx);
         return m_wasteCnt;
     }
+    
+    boost::chrono::seconds getTime(){
+        return m_time;
+    }
 
     //single thread unit test support
     void update(){
@@ -458,7 +486,7 @@ public:
 private:
 
     //for following mumber functions, their caller must acquire mutex first
-    virtual void work(){
+    virtual void doWork(){
 
         m_time++;
         decay();
@@ -490,12 +518,10 @@ private:
 
     void destroy_orders(std::list<order*>& list ){
 
-        std::list<order*>::iterator it = list.begin();
-        std::list<order*>::iterator end = list.end();
-        for ( ; it != end; it++ ){
+        for ( auto p : list ){
 
-            order* p = *it;
-            waste(p);
+            auto tmp = p;
+            waste(tmp);
         }
         list.clear();
     }
@@ -537,11 +563,8 @@ private:
 
         std::list<order*> rm_list;
 
-        ShelvesVectorIteratorType it = m_shelves.begin();
-        ShelvesVectorIteratorType end = m_shelves.end();
-        for ( ; it != end; it++ ){
+        for ( auto shelf : m_shelves ){
 
-            storeShelf *shelf = *it;
             assert(shelf);
             shelf->decay(rm_list);
         }
@@ -579,12 +602,9 @@ private:
 
     void clear(){
 
-        ShelvesVectorIteratorType it = m_shelves.begin();
-        ShelvesVectorIteratorType end = m_shelves.end();
-        for ( ; it != end; it++ ){
+        for ( auto p : m_shelves ){
             
-            storeShelf *p = *it;
-            assert(p);
+            assert(p->getOrdersCnt() == 0);
             delete p;
         }
         m_shelves.clear();
@@ -599,16 +619,16 @@ private:
 
     size_t showStatus(){
         size_t total = 0;
-
         if (!m_inUse) return total;
 
-        ShelvesVectorIteratorType it = m_shelves.begin();
-        ShelvesVectorIteratorType end = m_shelves.end();
-        for ( ; it != end; it++ ){
+        string details;
 
-            storeShelf *shelf = *it;
-            total += shelf->getOrdersCnt();
+        for ( auto p: m_shelves){
+
+            total += p->getOrdersCnt();
+            p->getOrdersInfo(details);
         }
+
         total += m_pOverflow->getOrdersCnt();
 
         return total;
@@ -653,7 +673,7 @@ public:
     
 private:
 
-    virtual void work(){
+    virtual void doWork(){
 
         while(m_space.size()){
             
