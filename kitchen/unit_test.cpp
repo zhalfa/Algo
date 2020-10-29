@@ -6,7 +6,7 @@ void test_orderfile_not_exist(){
     jsonProcessor orderNoExist("/home/zhangl/_orders.json");
     orderNoExist.prepare();
 
-    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
+    PASS_TEST;
 }
 
 void test_getOrder(){
@@ -18,7 +18,7 @@ void test_getOrder(){
 
     if (p) delete p;
 
-    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
+    PASS_TEST;
 }
 
 void test_storeOverflow(){
@@ -68,7 +68,7 @@ void test_storeOverflow(){
         it++;
     }
 
-    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
+    PASS_TEST;
 }
 
 void test_storeShelf(){
@@ -117,7 +117,7 @@ void test_storeShelf(){
         it++;
     }
 
-    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
+    PASS_TEST;
 }
 
 void test_kitchen(){
@@ -155,7 +155,7 @@ void test_kitchen(){
     cnt = kit_test.getWasteCnt();
     assert(cnt == orderCnt);
 
-    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
+    PASS_TEST;
 }
 
 void test_courierDispatcher(){
@@ -178,7 +178,7 @@ void test_courierDispatcher(){
     dispatcher.stop();
     assert(dispatcher.isEmpty());
 
-    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
+    PASS_TEST;
 }
 
 void test_kitchen_thread(){
@@ -219,7 +219,7 @@ void test_kitchen_thread(){
 
     gOrderAgeInc = save;
 
-    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
+    PASS_TEST;
 }
 
 void test_ingester(){
@@ -254,7 +254,7 @@ void test_ingester(){
     size_t cnt = kit_test.getWasteCnt();
     assert(order::s_ordersCnt == (132+1));
 
-    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
+    PASS_TEST;
 }
 
 int main(){
