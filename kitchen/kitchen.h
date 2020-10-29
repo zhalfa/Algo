@@ -571,6 +571,7 @@ private:
     typedef boost::unordered_map<temperature, ShelvesVectorIteratorType>::value_type MapPairType; 
     
     order* pickUp(order* pOrder){
+        if(!hasOrder(pOrder))return NULL;
 
         order* ret = m_pOverflow->removeOrder(pOrder);
         if (!ret){
@@ -722,6 +723,19 @@ private:
         }
 
         return total;
+    }
+
+    bool hasOrder(order* pOrder){
+
+        bool ret = false;        
+        if (!m_kitchenReady) return ret;
+
+        for ( auto p: m_shelves){
+
+            ret = p->hasOrder(pOrder);
+            if (ret) break;
+        }
+        return ret;
     }
 
     boost::chrono::milliseconds m_time;
