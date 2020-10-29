@@ -31,3 +31,14 @@ string convertTemperatureToString(temperature temp){
     }
 }
 
+string convertMessageToString(messageID msg){
+
+    switch(msg){
+        case msgOrderReceived:  return "OrderReceived ";
+        case msgOrderPickuped:  return "OrderPickuped ";
+        case msgOrderDiscarded: return "OrderDiscarded";
+        case msgOrderDecayed:   return "OrderDecayed  ";
+        case msgOrderMissed:    return "OrderMissed   ";
+        default:                return "              ";
+    }
+}

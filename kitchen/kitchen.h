@@ -462,6 +462,8 @@ enum messageID{
     msgOrderMissed
 };
 
+extern string convertMessageToString(messageID msg);
+
 class commonMessagerReceiver{
 public:
     virtual void onMessage( messageID id, const string& str)=0;
@@ -710,7 +712,7 @@ private:
         if (!m_kitchenReady) return total;
 
         string& details = m_logDetails;
-        if (orderDetails) details.empty();
+        if (orderDetails) details.clear();
 
         for ( auto p: m_shelves){
 

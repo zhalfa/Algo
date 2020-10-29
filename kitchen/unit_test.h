@@ -12,7 +12,9 @@ public:
     virtual void onMessage( messageID id, const string& str){
 
         if (m_enable){
-            std::cout <<"message id : " << id << std::endl;
+            string msg = "Message: ";
+            msg += convertMessageToString(id); msg += "\n";
+            std::cout << msg; 
             std::cout << str;
         }
     }
