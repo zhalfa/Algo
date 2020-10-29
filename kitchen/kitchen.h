@@ -462,15 +462,6 @@ public:
     virtual void onMessage( messageID id, const string& str)=0;
 };
 
-#include <iostream>
-
-class messageOutput: public commonMessagerReceiver {
-public:
-    virtual void onMessage( messageID id, const string& str){
-        std::cout <<"message id" << id << std::endl;
-        //std::cout << str;
-    }
-};
 
 struct courier{
     courier() {} 
@@ -491,7 +482,7 @@ struct compare_courier{
 class kitchen: public commonThread {
 
 public: 
-    kitchen(): m_pOverflow(NULL), m_inUse(false), m_wasteCnt(0), m_time(0){
+    kitchen(): m_pOverflow(NULL), m_kitchenReady(false), m_wasteCnt(0), m_time(0){
 
     }
     ~kitchen(){
@@ -506,13 +497,13 @@ public:
 
     bool onOrder( order* pOrder ){
 
-        if (!m_inUse || !pOrder) return false;
+        if (!m_kitchenReady || !pOrder) return false;
         MutexType lock(m_mtx);
-        if (!m_inUse ) return false;
+        if (!m_kitchenReady ) return false;
 
         bool ret = putOrder(pOrder);
         getStatus(true);
-        if (m_pLog) m_pLog->onMessage(msgOrderReceived, m_logDetails);
+        if ( ret && m_pLog) m_pLog->onMessage(msgOrderReceived, m_logDetails);
         return ret;
     }
     
@@ -525,7 +516,7 @@ public:
         MutexType lock(m_mtx);
         return m_wasteCnt;
     }
-    
+    //Read only for outside caller, no lock needed
     boost::chrono::milliseconds getTime(){
         return m_time;
     }
@@ -539,9 +530,9 @@ public:
 
     bool onCourier(courier* pCourier){
 
-        if (!m_inUse || !pCourier) return false;
+        if (!m_kitchenReady || !pCourier) return false;
         MutexType lock(m_mtx);
-        if (!m_inUse ) return false;
+        if (!m_kitchenReady ) return false;
         order *p = pickUp(pCourier->m_pOrder);
         if (p){
             getStatus(true);
@@ -643,7 +634,7 @@ private:
 
     void decay(){
 
-        if (!m_inUse) return;
+        if (!m_kitchenReady) return;
 
         std::list<order*> rm_list;
 
@@ -664,7 +655,7 @@ private:
 
     bool buildStorage(){
 
-        if (m_inUse) return false;
+        if (m_kitchenReady) return false;
 
         m_shelves.push_back( new storeShelf(hot, 10) );       
         m_shelves.push_back( new storeShelf(cold, 10) );       
@@ -683,9 +674,9 @@ private:
         m_pOverflow = new storeOverflow(15);
         if (m_pOverflow && m_shelves.size()){
 
-            m_inUse = true;
+            m_kitchenReady = true;
         }          
-        return m_inUse;
+        return m_kitchenReady;
     }
 
     void clear(){
@@ -702,12 +693,13 @@ private:
             delete m_pOverflow;
             m_pOverflow = NULL;
         }
-        m_inUse = false;
+        m_kitchenReady = false;
     }
 
     size_t getStatus( bool orderDetails = false){
+
         size_t total = 0;
-        if (!m_inUse) return total;
+        if (!m_kitchenReady) return total;
 
         string& details = m_logDetails;
         if (orderDetails) details.empty();
@@ -731,7 +723,7 @@ private:
     ShelvesVectorType m_shelves;
     boost::unordered_map<temperature, ShelvesVectorIteratorType> m_index;
     storeOverflow* m_pOverflow;
-    bool m_inUse;
+    bool m_kitchenReady;
     size_t m_wasteCnt;
     string m_logDetails;
     commonMessagerReceiver* m_pLog;
@@ -754,6 +746,7 @@ public:
 private:
 
     virtual void doWork(){
+
         boost::chrono::milliseconds sysTime(std::rand()); 
 
         if (m_pKitchen)
@@ -776,18 +769,6 @@ private:
     }
 
     virtual bool checkEmpty(){ return (m_space.size()==0); };
-
-    courier getCourier(){
-
-        courier ret(0,NULL);
-
-        if ( m_space.size()){
-
-            ret = m_space.top();
-            m_space.pop();
-        }
-        return ret;
-    }
 
     bool putCourier(courier cr){
         m_space.push(cr);
@@ -821,6 +802,7 @@ public:
     void run(){
 
         if (!m_jsonOK || !m_pDispatcher || !m_pKitchen ) return ;
+
         order *p;
         while ( p = m_json.getOrder()){
             
@@ -840,8 +822,7 @@ public:
     }
 
 private:
-    int sendOrder(order*);
-    int arrangeCourier(courier*);
+
     kitchen* m_pKitchen;
     courierDispatcher* m_pDispatcher;
 
