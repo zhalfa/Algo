@@ -739,6 +739,8 @@ private:
 class courierDispatcher: public commonThread {
 
 public:
+    courierDispatcher(kitchen *pk = NULL): m_pKitchen(pk){ }    
+
     bool onCourier(courier cr){
         MutexType lock(m_mtx);
         return putCourier(cr);
@@ -747,11 +749,22 @@ public:
 private:
 
     virtual void doWork(){
+        boost::chrono::milliseconds sysTime(std::rand()); 
+
+        if (m_pKitchen)
+            sysTime = m_pKitchen->getTime(); 
 
         while(m_space.size()){
-            
-            courier tmp = getCourier();
-            tmp;
+
+            courier top = m_space.top();
+
+            if ( top.m_pickupTime <= sysTime){
+
+                if (m_pKitchen)
+                    m_pKitchen->onCourier(&top); 
+
+                m_space.pop();
+            }
         }
     }
 
@@ -775,6 +788,7 @@ private:
     }
 
     boost::heap::priority_queue<courier, boost::heap::compare<compare_courier>> m_space;
+    kitchen *m_pKitchen; 
 };
 
 class orderIngester{

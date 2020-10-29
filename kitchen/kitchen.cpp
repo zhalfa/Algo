@@ -173,7 +173,7 @@ void test_courierDispatcher(){
     dispatcher.onCourier(courier(1,NULL));
 
     while( !dispatcher.isEmpty())
-        boost::this_thread::sleep_for(boost::chrono::seconds(9));
+        boost::this_thread::sleep_for(boost::chrono::seconds(2));
 
     dispatcher.stop();
     assert(dispatcher.isEmpty());
