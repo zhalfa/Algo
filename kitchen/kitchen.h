@@ -53,8 +53,6 @@ public:
 
         str+= m_id;
         str+= " : ";
-        str+= m_name;
-        str+= " : ";
         str+= convertTemperatureToString(m_temp);
         str+= " : ";
         str+= std::to_string(m_shelfLife);
@@ -62,6 +60,8 @@ public:
         str+= std::to_string(m_decayRate);
         str+= " : ";
         str+= std::to_string(m_orderAge);
+        str+= " : ";
+        str+= m_name;
         str+= "\n";
     }
     static size_t s_ordersCnt;
@@ -222,14 +222,17 @@ public:
     
     size_t getOrdersInfo(string& str){
         
-        size_t cnt = 0;
-        for (auto i: m_space){
-            cnt++;        
-            i->getOrderInfo(str);
+        if (m_cnt){
+
+            str+= "<---------------------\n";
+            str+=convertTemperatureToString(getTemperature());
+            str+= "\n";
+            for (auto i: m_space){
+                i->getOrderInfo(str);
+            }
+            str+= "--------------------->\n";
         }
-        if (cnt)
-            str+= "----------------------\n";
-        return cnt;
+        return m_cnt;
     }
 
 private:
@@ -371,16 +374,18 @@ public:
     } 
 
     size_t getOrdersInfo(string& str){
-        size_t cnt = 0;
 
-        for( auto p : m_space ){
-            cnt++;
-            assert(p);
-            p->getOrderInfo(str);
+        if (m_cnt){
+
+            str+= "<---------------------\n";
+            str+=convertTemperatureToString(getTemperature());
+            str+= "\n";
+            for (auto i: m_space){
+                i->getOrderInfo(str);
+            }
+            str+= "--------------------->\n";
         }
-        if (cnt)
-            str+= "----------------------\n";
-        return cnt;
+        return m_cnt;
     }    
 private:
     

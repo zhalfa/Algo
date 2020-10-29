@@ -1,13 +1,6 @@
 #include "kitchen.h"
 #include <iostream> 
 
-class messageOutput: public commonMessagerReceiver {
-public:
-    virtual void onMessage( messageID id, const string& str){
-        //std::cout <<"message id" << id << std::endl;
-        //std::cout << str;
-    }
-};
 
 boost::chrono::milliseconds gTimeInterval(200);
 double gOrderAgeInc = 200.0f/1000; 
@@ -30,10 +23,11 @@ temperature convertToTemperature(string s ){
 string convertTemperatureToString(temperature temp){
 
     switch(temp){
-        case hot: return "hot";
-        case cold:return "cold";
-        case frozen:return "frozen";
-        default: return "";
+        case hot:    return "hot   ";
+        case cold:   return "cold  ";
+        case frozen: return "frozen";
+        case any:    return "any   ";
+        default:     return "      ";
     }
 }
 

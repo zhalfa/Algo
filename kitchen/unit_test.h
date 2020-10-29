@@ -5,11 +5,17 @@
     { std::cout<< "test pass:" << __FUNCTION__ << std::endl; };
 
 class messageOutput: public commonMessagerReceiver {
+
 public:
+    messageOutput(bool enable = false ): m_enable(enable){}
+
     virtual void onMessage( messageID id, const string& str){
-#if 0
-        std::cout <<"message id" << id << std::endl;
-        std::cout << str;
-#endif
+
+        if (m_enable){
+            std::cout <<"message id : " << id << std::endl;
+            std::cout << str;
+        }
     }
+private:
+    bool m_enable;
 };

@@ -36,4 +36,35 @@ int main(int argc, char *argv[]){
         return EXIT_FAILURE;
     }
 
+    kitchen kit_test;
+    messageOutput log(true);
+
+    courierDispatcher dispatcher(&kit_test);
+    orderIngester ingester(&kit_test, &dispatcher);
+
+    bool res = kit_test.init(&log);
+    assert(res);
+
+    if (res){
+
+        kit_test.start();
+        dispatcher.start();
+
+        res = ingester.setFile(file);
+        if (res){
+            ingester.setRate(rate);
+            ingester.run();
+
+            while( !kit_test.isEmpty())
+                boost::this_thread::sleep_for(boost::chrono::seconds(4));
+        }
+
+        kit_test.stop();
+
+        dispatcher.stop();
+        assert(dispatcher.isEmpty());
+
+        size_t cnt = kit_test.getWasteCnt();
+    }
+    return 0;
 }
