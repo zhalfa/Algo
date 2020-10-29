@@ -7,14 +7,17 @@ boost_static:= -lboost_system -lboost_thread -lboost_log_setup -lboost_chrono -l
 dll:=$(boost)/bin/cygboost_thread.dll $(boost)/bin/cygboost_chrono.dll
 
 
-test : kitchen.o
-	$(cc) -L$(boost)/lib $(boost_static) $(dll) kitchen.o -o test 
+test : kitchen.o unit_test.o
+	$(cc) -L$(boost)/lib $(boost_static) $(dll) kitchen.o unit_test.o -o test 
 
 .cpp.o:
 	$(cc) $(flag) -c $< -o $@
 
 kitchen.o : kitchen.cpp  kitchen.h
 	$(cc) $(flag) kitchen.cpp -o kitchen.o
+
+unit_test.o : unit_test.cpp  kitchen.h  unit_test.h
+	$(cc) $(flag) unit_test.cpp -o unit_test.o
 
 clean:
 	rm *.o *.exe
