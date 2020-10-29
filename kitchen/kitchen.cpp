@@ -9,6 +9,33 @@ public:
     }
 };
 
+boost::chrono::milliseconds gTimeInterval(200);
+double gOrderAgeInc = 200.0f/1000; 
+
+temperature convertToTemperature(string s ){
+
+    if ( s == "hot" ){
+        return hot;
+    }else if( s == "cold" ){
+        return cold;
+    }else if ( s == "frozen"){
+        return frozen;
+    }else{
+        return unknown;
+    }
+}
+
+string convertTemperatureToString(temperature temp){
+
+    switch(temp){
+        case hot: return "hot";
+        case cold:return "cold";
+        case frozen:return "frozen";
+        default: return "";
+    }
+}
+
+//unit test 
 void test_orderfile_not_exist(){
 
     jsonProcessor orderNoExist("/home/zhangl/_orders.json");
@@ -191,6 +218,9 @@ void test_courierDispatcher(){
 
 void test_kitchen_thread(){
     
+    double save = gOrderAgeInc; 
+    gOrderAgeInc = 2.0f;
+
     jsonProcessor orderSrc("/home/zhangl/orders.json"); 
     orderSrc.prepare();
     messageOutput log;
@@ -222,6 +252,8 @@ void test_kitchen_thread(){
     cnt = kit_test.getWasteCnt();
     assert(cnt == orderCnt);
 
+    gOrderAgeInc = save;
+
     std::cout<< "test pass:" << __FUNCTION__ << std::endl;
 }
 
@@ -237,6 +269,7 @@ void test_ingester(){
 
     courierDispatcher dispatcher(&kit_test);
     dispatcher.start();
+
     orderIngester ingester(&kit_test, &dispatcher);
 
     string path ="/home/zhangl/orders.json";

@@ -1,18 +1,17 @@
 #pragma once
 
-#include<string>
-#include<list>
-#include<unordered_map>
-#include<cstdlib>
-#include<cassert>
+#include <string>
+#include <list>
+#include <unordered_map>
+#include <cstdlib>
+#include <cassert>
 #include "boost/chrono.hpp"
 
-boost::chrono::milliseconds gTimeInterval(200);
-double gOrderAgeInc = 200.0f/1000; 
+extern boost::chrono::milliseconds gTimeInterval;
+extern double gOrderAgeInc; //unit is second
 
 using std::string;
 using std::list;
-using std::array;
 using std::unordered_map;
 using std::rand;
 
@@ -24,28 +23,9 @@ enum temperature {
     unknown
 };
 
-temperature convertToTemperature(string s ){
+extern temperature convertToTemperature(string s );
 
-    if ( s == "hot" ){
-        return hot;
-    }else if( s == "cold" ){
-        return cold;
-    }else if ( s == "frozen"){
-        return frozen;
-    }else{
-        return unknown;
-    }
-}
-
-string convertTemperatureToString(temperature temp){
-
-    switch(temp){
-        case hot: return "hot";
-        case cold:return "cold";
-        case frozen:return "frozen";
-        default: return "";
-    }
-}
+extern string convertTemperatureToString(temperature temp);
 
 class order{
 
