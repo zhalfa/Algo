@@ -20,6 +20,7 @@ enum temperature {
     hot = 0,
     cold,
     frozen,
+    any,
     unknown
 };
 
@@ -139,18 +140,41 @@ private:
     size_t m_cnt;
 };
 
-
-class storeShelf{
+class store{
 
 public:
-    storeShelf(temperature temp, size_t max): m_temp(temp), m_maxCnt(max), m_cnt(0){
 
-        m_shelfDecayModifier = 1;
-    }
+    store(temperature temp, size_t max, size_t modifier): 
+        m_temp(temp), m_maxCnt(max), m_shelfDecayModifier(modifier), m_cnt(0){ }
+
+    virtual ~store(){}
 
     size_t getOrdersCnt(){return m_cnt;}
 
     temperature getTemperature(){return m_temp;}
+
+    virtual bool hasOrder(order*pOrder) = 0;
+    virtual order* removeOrder(order* pOrder) = 0;
+
+    virtual bool addOrder(order* pOrder, order** ppDiscard) = 0;
+
+    virtual size_t decay(std::list<order*>& rm_list) = 0;
+    virtual size_t getOrdersInfo(string& str) = 0;
+
+protected:
+    temperature m_temp;
+    unsigned int m_maxCnt;
+    unsigned int m_cnt;
+    unsigned int m_shelfDecayModifier;
+};
+
+class storeShelf: public store {
+
+public:
+    storeShelf(temperature temp, size_t max, size_t modifier): store(temp, max, modifier){
+
+        m_shelfDecayModifier = 1;
+    }
 
     bool hasOrder(order*pOrder){
         
@@ -158,7 +182,7 @@ public:
         return true;
     }
 
-    bool addOrder(order* pOrder){
+    bool addOrder(order* pOrder, order** ppDiscard = NULL ){
     
         bool ret = false;
 
@@ -244,10 +268,6 @@ private:
     list<order*> m_space;
     unordered_map<order*, ItemIteratorType> m_index;
 
-    temperature m_temp;
-    unsigned int m_maxCnt;
-    unsigned int m_cnt;
-    unsigned int m_shelfDecayModifier;
 };
 
 #include "boost/container/stable_vector.hpp"
@@ -645,9 +665,9 @@ private:
 
         if (m_kitchenReady) return false;
 
-        m_shelves.push_back( new storeShelf(hot, 10) );       
-        m_shelves.push_back( new storeShelf(cold, 10) );       
-        m_shelves.push_back( new storeShelf(frozen, 10) );       
+        m_shelves.push_back( new storeShelf(hot, 10, 1) );       
+        m_shelves.push_back( new storeShelf(cold, 10, 1) );       
+        m_shelves.push_back( new storeShelf(frozen, 10,1) );       
 
         ShelvesVectorIteratorType it = m_shelves.begin();
         ShelvesVectorIteratorType end = m_shelves.end();

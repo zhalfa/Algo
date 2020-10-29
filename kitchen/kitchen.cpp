@@ -114,7 +114,7 @@ void test_storeShelf(){
     orderSrc.prepare();
 
     const size_t capacity = 10;
-    storeShelf shelf( cold, capacity);
+    storeShelf shelf( cold, capacity, 1);
 
     size_t orderCnt= 0; 
     size_t discardCnt = 0;
