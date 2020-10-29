@@ -27,12 +27,15 @@ extern temperature convertToTemperature(string s );
 
 extern string convertTemperatureToString(temperature temp);
 
+
 class order{
 
 public:
     order(string id, string name, temperature temp, int shelfLife, float decayRate):
         m_id(id), m_name(name), m_temp(temp), m_shelfLife(shelfLife), m_decayRate(decayRate), m_orderAge(0) {
     }
+
+    ~order(){ s_ordersCnt++; }
 
     float decay(size_t modifier){
 
@@ -60,6 +63,7 @@ public:
         str+= std::to_string(m_orderAge);
         str+= "\n";
     }
+    static size_t s_ordersCnt;
 private:
 
     string m_id;
@@ -69,6 +73,7 @@ private:
     float m_decayRate;
     double m_orderAge;
 };
+
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -444,7 +449,7 @@ public:
 
 
 struct courier{
-    courier() {} 
+    courier(): m_pickupTime(0), m_pOrder(NULL) {} 
     courier(size_t t, order* p): m_pickupTime(t), m_pOrder(p) {}
 
     boost::chrono::milliseconds m_pickupTime; 
@@ -515,8 +520,11 @@ public:
         if (!m_kitchenReady ) return false;
         order *p = pickUp(pCourier->m_pOrder);
         if (p){
+
             getStatus(true);
             if (m_pLog) m_pLog->onMessage(msgOrderPickuped, m_logDetails);
+            delete p;
+
         }else{
 
             if (m_pLog) m_pLog->onMessage(msgOrderMissed, string());
@@ -670,6 +678,8 @@ private:
         m_index.clear();
 
         if (m_pOverflow){
+
+            assert(m_pOverflow->getOrdersCnt() == 0);
             delete m_pOverflow;
             m_pOverflow = NULL;
         }
@@ -708,8 +718,6 @@ private:
     string m_logDetails;
     commonMessagerReceiver* m_pLog;
 };
-
-
 
 #include "boost/heap/priority_queue.hpp"
 

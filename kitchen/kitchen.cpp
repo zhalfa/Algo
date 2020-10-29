@@ -12,6 +12,8 @@ public:
 boost::chrono::milliseconds gTimeInterval(200);
 double gOrderAgeInc = 200.0f/1000; 
 
+size_t order::s_ordersCnt = 0;
+
 temperature convertToTemperature(string s ){
 
     if ( s == "hot" ){
@@ -287,6 +289,7 @@ void test_ingester(){
     assert(dispatcher.isEmpty());
 
     size_t cnt = kit_test.getWasteCnt();
+    assert(order::s_ordersCnt == 132);
 
     std::cout<< "test pass:" << __FUNCTION__ << std::endl;
 }
