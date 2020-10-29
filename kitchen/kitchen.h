@@ -150,6 +150,8 @@ public:
     virtual ~store(){}
 
     size_t getOrdersCnt(){return m_cnt;}
+    size_t getAvailableCnt(){return m_maxCnt - m_cnt;}
+    bool isFull(){return m_cnt == m_maxCnt;}
 
     temperature getTemperature(){return m_temp;}
 
@@ -618,29 +620,44 @@ private:
         assert(shelf);
 
         order* discard = NULL;
-        if (shelf->addOrder(pOrder,NULL)){
-
+        if (shelf->getAvailableCnt()){
+            shelf->addOrder(pOrder,NULL);
             ret = true;
 
         }else{
-            m_pOverflow->addOrder(pOrder, &discard);
-            if (discard){
+            
+            if (m_pOverflow->isFull()){ moveOverflowToShelves(pOrder);};
 
-                store* shelf = findShelf(discard);
-                assert(shelf);
-                ret = shelf->addOrder(discard,NULL);
-                //assert(!ret);
-                if (ret) discard = NULL;
+            if (m_pOverflow->isFull()){
+
+                m_pOverflow->addOrder(pOrder, &discard);
+                if (discard){
+
+                    shelf = findShelf(discard);
+                    assert(shelf);
+                    ret = shelf->addOrder(discard,NULL);
+                    //assert(!ret);
+                    if (ret) discard = NULL;
+
+                }else{
+                    ret = true;
+                }
 
             }else{
-                ret = true;
+                
+                ret = m_pOverflow->addOrder(pOrder, &discard);
             }
         }
+
         if (discard){ 
             waste(discard);
             if (m_pLog) m_pLog->onMessage(msgOrderDiscarded, m_logDetails);
         }
         return ret;
+    }
+
+    void moveOverflowToShelves(order* pOrder){
+
     }
 
     void decay(){
