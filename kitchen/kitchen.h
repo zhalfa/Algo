@@ -274,15 +274,13 @@ private:
 #include "boost/unordered_map.hpp"
 
 
-class storeOverflow{
+class storeOverflow: public store {
 
 public:
-    storeOverflow(size_t max): m_maxCnt(max), m_cnt(0){
+    storeOverflow(size_t max, size_t modifier): store(any, max, modifier){
 
         m_shelfDecayModifier = 2;
     }
-
-    size_t getOrdersCnt(){return m_cnt;}
 
     bool hasOrder(order*pOrder){
        
@@ -394,9 +392,6 @@ private:
 
     boost::unordered_map<order*, OrderVectorIteratorType> m_index;
 
-    unsigned int m_maxCnt;
-    unsigned int m_cnt;
-    unsigned int m_shelfDecayModifier;
 };
 
 #include "boost/thread/thread.hpp"
@@ -679,7 +674,7 @@ private:
             m_index.insert(item);
         }
 
-        m_pOverflow = new storeOverflow(15);
+        m_pOverflow = new storeOverflow(15, 2);
         if (m_pOverflow && m_shelves.size()){
 
             m_kitchenReady = true;

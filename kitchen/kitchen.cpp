@@ -64,7 +64,7 @@ void test_storeOverflow(){
     orderSrc.prepare();
 
     const size_t capacity = 30;
-    storeOverflow overflow(capacity);
+    storeOverflow overflow(capacity,2);
 
     size_t orderCnt= 0; 
     size_t discardCnt = 0;
