@@ -1,7 +1,7 @@
 
 boost:=/home/zhangl/boost_bd
 cc:= g++
-flag:= -g -c -std=c++11 -I$(boost)/include
+flag:= -O3 -c -std=c++11 -I$(boost)/include
 
 boost_static:= -lboost_system -lboost_thread -lboost_chrono -lboost_program_options -lpthread 
 dll:=   $(boost)/bin/cygboost_thread.dll \

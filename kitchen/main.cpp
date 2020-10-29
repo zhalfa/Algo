@@ -65,6 +65,8 @@ int main(int argc, char *argv[]){
         assert(dispatcher.isEmpty());
 
         size_t cnt = kit_test.getWasteCnt();
+        std::cout << "wasted   :" << cnt << std::endl;
+        std::cout << "pickuped :" << log.m_pickuped << std::endl;
     }
     return 0;
 }
