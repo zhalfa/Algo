@@ -453,7 +453,8 @@ enum messageID{
     msgOrderReceived,
     msgOrderPickuped,
     msgOrderDiscarded,
-    msgOrderDecayed
+    msgOrderDecayed,
+    msgOrderMissed
 };
 
 class commonMessagerReceiver{
@@ -490,7 +491,7 @@ struct compare_courier{
 class kitchen: public commonThread {
 
 public: 
-    kitchen(): m_pOverflow(NULL), m_inUse(false), m_wasteCnt(0){
+    kitchen(): m_pOverflow(NULL), m_inUse(false), m_wasteCnt(0), m_time(0){
 
     }
     ~kitchen(){
@@ -545,7 +546,11 @@ public:
         if (p){
             getStatus(true);
             if (m_pLog) m_pLog->onMessage(msgOrderPickuped, m_logDetails);
+        }else{
+
+            if (m_pLog) m_pLog->onMessage(msgOrderMissed, string());
         }
+        
         return p;
     }
 
@@ -764,6 +769,8 @@ private:
                     m_pKitchen->onCourier(&top); 
 
                 m_space.pop();
+            }else{
+                break;
             }
         }
     }

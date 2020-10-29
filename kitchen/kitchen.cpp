@@ -217,7 +217,42 @@ void test_kitchen_thread(){
     std::cout<< "test pass:" << __FUNCTION__ << std::endl;
 }
 
+void test_ingester(){
+
+    kitchen kit_test;
+    messageOutput log;
+
+    bool res = kit_test.init(&log);
+    assert(res);
+
+    kit_test.start();
+
+    courierDispatcher dispatcher(&kit_test);
+    dispatcher.start();
+    orderIngester ingester(&kit_test, &dispatcher);
+
+    string path ="/home/zhangl/orders.json";
+    ingester.setFile(path);
+    ingester.setRate(2);
+    
+    ingester.run();
+
+    while( !kit_test.isEmpty())
+        boost::this_thread::sleep_for(boost::chrono::seconds(4));
+
+    kit_test.stop();
+    dispatcher.stop();
+
+    assert(dispatcher.isEmpty());
+
+    size_t cnt = kit_test.getWasteCnt();
+
+    std::cout<< "test pass:" << __FUNCTION__ << std::endl;
+}
+
 int main(){
+
+    test_ingester();
 
     test_kitchen_thread();    
 
@@ -231,25 +266,5 @@ int main(){
     test_getOrder();
     test_orderfile_not_exist();
 
-    kitchen *pKitchen;
-    courierDispatcher *pDispatcher;
-
-    orderIngester ingester(pKitchen, pDispatcher);
-#if 0
-    ingester.setFile();
-    ingester.setRate();
-
-    ingester.run();
-
-    if ( pDispatcher->empty()){
-
-        //pDispatcher join
-
-        if (pKitchen->close()){
-
-            //pKitchen->join
-        }
-    }
-#endif
     return 0;
 }
