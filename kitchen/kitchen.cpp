@@ -289,7 +289,7 @@ void test_ingester(){
     assert(dispatcher.isEmpty());
 
     size_t cnt = kit_test.getWasteCnt();
-    assert(order::s_ordersCnt == 132);
+    assert(order::s_ordersCnt == (132+1));
 
     std::cout<< "test pass:" << __FUNCTION__ << std::endl;
 }

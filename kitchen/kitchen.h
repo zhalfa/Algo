@@ -559,15 +559,15 @@ private:
     
     virtual bool checkEmpty(){ return (getStatus()==0); }
 
-    typedef boost::container::stable_vector<storeShelf*> ShelvesVectorType;
-    typedef boost::container::stable_vector<storeShelf*>::iterator ShelvesVectorIteratorType;
+    typedef boost::container::stable_vector<store*> ShelvesVectorType;
+    typedef boost::container::stable_vector<store*>::iterator ShelvesVectorIteratorType;
     typedef boost::unordered_map<temperature, ShelvesVectorIteratorType>::value_type MapPairType; 
     
     order* pickUp(order* pOrder){
 
         order* ret = m_pOverflow->removeOrder(pOrder);
         if (!ret){
-            storeShelf *shelf = findShelf(pOrder);
+            store *shelf = findShelf(pOrder);
             assert(shelf);
             ret = shelf->removeOrder(pOrder);
         }
@@ -575,8 +575,8 @@ private:
         return ret;
     } 
 
-    storeShelf* findShelf(order* pOrder){
-        storeShelf* ret = NULL;
+    store* findShelf(order* pOrder){
+        store* ret = NULL;
 
         if(pOrder){
             temperature temp = pOrder->getTemperature();
@@ -606,11 +606,11 @@ private:
     bool putOrder(order* pOrder){
         bool ret = false;
 
-        storeShelf* shelf = findShelf(pOrder);
+        store* shelf = findShelf(pOrder);
         assert(shelf);
 
         order* discard = NULL;
-        if (shelf->addOrder(pOrder)){
+        if (shelf->addOrder(pOrder,NULL)){
 
             ret = true;
 
@@ -618,9 +618,9 @@ private:
             m_pOverflow->addOrder(pOrder, &discard);
             if (discard){
 
-                storeShelf* shelf = findShelf(discard);
+                store* shelf = findShelf(discard);
                 assert(shelf);
-                ret = shelf->addOrder(discard);
+                ret = shelf->addOrder(discard,NULL);
                 //assert(!ret);
                 if (ret) discard = NULL;
 
@@ -647,8 +647,6 @@ private:
             shelf->decay(rm_list);
         }
         
-        m_pOverflow->decay(rm_list);
-
         if (rm_list.size()){
             getStatus(true);
             if (m_pLog) m_pLog->onMessage(msgOrderDecayed, m_logDetails);
@@ -663,6 +661,7 @@ private:
         m_shelves.push_back( new storeShelf(hot, 10, 1) );       
         m_shelves.push_back( new storeShelf(cold, 10, 1) );       
         m_shelves.push_back( new storeShelf(frozen, 10,1) );       
+        m_shelves.push_back( new storeOverflow(15, 2) );       
 
         ShelvesVectorIteratorType it = m_shelves.begin();
         ShelvesVectorIteratorType end = m_shelves.end();
@@ -674,7 +673,10 @@ private:
             m_index.insert(item);
         }
 
-        m_pOverflow = new storeOverflow(15, 2);
+        order tmp("","", any, 0, 0);
+        m_pOverflow = findShelf(&tmp);
+        assert(m_pOverflow);
+
         if (m_pOverflow && m_shelves.size()){
 
             m_kitchenReady = true;
@@ -692,12 +694,8 @@ private:
         m_shelves.clear();
         m_index.clear();
 
-        if (m_pOverflow){
-
-            assert(m_pOverflow->getOrdersCnt() == 0);
-            delete m_pOverflow;
-            m_pOverflow = NULL;
-        }
+        m_pOverflow = NULL;
+        
         m_kitchenReady = false;
     }
 
@@ -716,10 +714,6 @@ private:
                 p->getOrdersInfo(details);
         }
 
-        total += m_pOverflow->getOrdersCnt();
-        if (orderDetails)
-            m_pOverflow->getOrdersInfo(details);
-
         return total;
     }
 
@@ -727,7 +721,7 @@ private:
 
     ShelvesVectorType m_shelves;
     boost::unordered_map<temperature, ShelvesVectorIteratorType> m_index;
-    storeOverflow* m_pOverflow;
+    store* m_pOverflow;
     bool m_kitchenReady;
     size_t m_wasteCnt;
     string m_logDetails;
