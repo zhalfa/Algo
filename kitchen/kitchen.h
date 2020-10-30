@@ -170,6 +170,7 @@ protected:
     unsigned int m_shelfDecayModifier;
 };
 
+
 class storeShelf: public store {
 
 public:
@@ -228,6 +229,8 @@ public:
 
             str+= "<---------------------\n";
             str+=convertTemperatureToString(getTemperature());
+            str+= " : ";
+            str+= std::to_string(m_cnt);
             str+= "\n";
             for (auto i: m_space){
                 i->getOrderInfo(str);
@@ -278,6 +281,16 @@ private:
 #include "boost/container/stable_vector.hpp"
 #include "boost/unordered_map.hpp"
 
+struct shelfInfo {
+
+    shelfInfo(temperature tpr, store* p){ m_tpr = tpr; m_shelf = p; }
+
+    temperature m_tpr;
+    store* m_shelf;
+    std::list<order*> m_list;
+};
+
+typedef std::unordered_map<temperature, shelfInfo*> shelvesInfoType; 
 
 class storeOverflow: public store {
 
@@ -381,6 +394,8 @@ public:
 
             str+= "<---------------------\n";
             str+=convertTemperatureToString(getTemperature());
+            str+= " : ";
+            str+= std::to_string(m_cnt);
             str+= "\n";
             for (auto i: m_space){
                 i->getOrderInfo(str);
@@ -389,6 +404,8 @@ public:
         }
         return m_cnt;
     }    
+
+    void getMoveList(shelvesInfoType&);
 private:
     
     typedef boost::container::stable_vector<order*> OrderVectorType;
@@ -656,9 +673,7 @@ private:
         return ret;
     }
 
-    void moveOverflowToShelves(order* pOrder){
-
-    }
+    void moveOverflowToShelves(order* pOrder);
 
     void decay(){
 
