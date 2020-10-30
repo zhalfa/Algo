@@ -58,7 +58,7 @@ void kitchen::moveOverflowToShelves(order* pOrder){
 
     if( pOrder) tpr = pOrder->getTemperature(); 
 
-    std::list<store*> check;
+    std::list<baseShelf*> check;
 
     for( auto s: m_shelves){
 
@@ -94,7 +94,7 @@ void kitchen::moveOverflowToShelves(order* pOrder){
             for(auto it : info ){
 
                 shelfInfo* pInfo = it.second;
-                store* shelf= pInfo->m_shelf; 
+                baseShelf* shelf= pInfo->m_shelf; 
 
                 for( auto pOrder: pInfo->m_list){
 
