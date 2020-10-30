@@ -143,6 +143,7 @@ private:
     size_t m_cnt;
 };
 
+//this base class for shelf and overflow
 class store{
 
 public:
@@ -157,13 +158,15 @@ public:
     bool isFull(){return m_cnt == m_maxCnt;}
 
     temperature getTemperature(){return m_temp;}
-
+    //check whether an order exist 
     virtual bool hasOrder(order*pOrder) = 0;
+    //remove an order 
     virtual order* removeOrder(order* pOrder) = 0;
-
+    //add an order, some derived class may discard an existing order
     virtual bool addOrder(order* pOrder, order** ppDiscard) = 0;
-
+    //orders decay as time goes by, rm_list collect all decayed order
     virtual size_t decay(std::list<order*>& rm_list) = 0;
+    //support log for order contained 
     virtual size_t getOrdersInfo(string& str) = 0;
 
 protected:
