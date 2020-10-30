@@ -53,7 +53,7 @@ int main(int argc, char *argv[]){
     courierDispatcher dispatcher(&kit_test);
     orderIngester ingester(&kit_test, &dispatcher);
 
-    bool res = kit_test.init(&log);
+    bool res = kit_test.prepareKitchen(&log);
     assert(res);
 
     if (res){

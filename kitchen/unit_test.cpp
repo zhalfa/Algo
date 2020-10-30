@@ -126,7 +126,7 @@ void test_kitchen(){
     orderSrc.prepare();
 
     kitchen kit_test;
-    bool res = kit_test.init();
+    bool res = kit_test.prepareKitchen();
     assert(res);
 
     size_t orderCnt= 0; 
@@ -191,7 +191,7 @@ void test_kitchen_thread(){
     messageOutput log;
 
     kitchen kit_test;
-    bool res = kit_test.init(&log);
+    bool res = kit_test.prepareKitchen(&log);
     assert(res);
 
     kit_test.start();
@@ -227,7 +227,7 @@ void test_ingester(){
     kitchen kit_test;
     messageOutput log;
 
-    bool res = kit_test.init(&log);
+    bool res = kit_test.prepareKitchen(&log);
     assert(res);
 
     kit_test.start();

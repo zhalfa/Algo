@@ -525,10 +525,10 @@ public:
         clear();
     }
 
-    bool init(commonMessagerReceiver* pLog = NULL){
+    bool prepareKitchen(commonMessagerReceiver* pLog = NULL){
         MutexType lock(m_mtx);
         m_pLog = pLog;
-        return buildStorage();
+        return prepareStorage();
     }
 
     //an order arrives
@@ -556,8 +556,9 @@ public:
         return m_wasteCnt;
     }
 
+    //kitchen time used as simulation system time
+    //updated every 200 milliseconds    
     //Read only for outside caller, no lock needed
-    
     boost::chrono::milliseconds getTime(){
         return m_time;
     }
@@ -565,11 +566,11 @@ public:
     //just for unit test in single thread mode
     void update(){
         MutexType lock(m_mtx);
-        m_time += gTimeInterval;
-        decay();    
+        doWork();
     }
 
-    //a courier arrives and pickup specified order
+    //a courier arrives and try to pickup specified order
+    //that order may be ready or wasted
     bool onCourier(courier* pCourier){
 
         if (!m_kitchenReady || !pCourier) return false;
@@ -592,7 +593,6 @@ public:
 
 private:
 
-    //for following mumber functions, their caller must acquire mutex first
     virtual void doWork(){
 
         m_time += gTimeInterval;
@@ -710,7 +710,7 @@ private:
         destroy_orders(rm_list);
     }
 
-    bool buildStorage(){
+    bool prepareStorage(){
 
         if (m_kitchenReady) return false;
 
