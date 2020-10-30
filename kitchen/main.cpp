@@ -36,6 +36,17 @@ int main(int argc, char *argv[]){
         return EXIT_FAILURE;
     }
 
+    std::ifstream ifile;
+
+    ifile.open(file);
+    if(ifile) {
+
+        ifile.close();
+    } else {
+        std::cout<< file << " : file doesn't exist" << std::endl;
+        return 0;
+    }   
+    
     kitchen kit_test;
     messageOutput log(true);
 
