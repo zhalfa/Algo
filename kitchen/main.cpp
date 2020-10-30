@@ -47,35 +47,37 @@ int main(int argc, char *argv[]){
         return 0;
     }   
     
-    kitchen kit_test;
+    kitchen kitchen_simulator;
     messageOutput log(true);
 
-    courierDispatcher dispatcher(&kit_test);
-    orderIngester ingester(&kit_test, &dispatcher);
+    courierDispatcher dispatcher(&kitchen_simulator);
+    orderIngester ingester(&kitchen_simulator, &dispatcher);
 
-    bool res = kit_test.prepareKitchen(&log);
+    bool res = kitchen_simulator.prepareKitchen(&log);
     assert(res);
 
     if (res){
 
-        kit_test.start();
+        kitchen_simulator.start();
         dispatcher.start();
 
+        size_t orderCnt = 0;
         res = ingester.setFile(file);
         if (res){
             ingester.setRate(rate);
-            ingester.run();
+            orderCnt = ingester.run();
 
-            while( !kit_test.isEmpty())
+            while( !kitchen_simulator.isEmpty())
                 boost::this_thread::sleep_for(boost::chrono::seconds(4));
         }
 
-        kit_test.stop();
+        kitchen_simulator.stop();
 
         dispatcher.stop();
         assert(dispatcher.isEmpty());
 
-        size_t cnt = kit_test.getWasteCnt();
+        size_t cnt = kitchen_simulator.getWasteCnt();
+        std::cout << "ingested :" << orderCnt << std::endl;
         std::cout << "wasted   :" << cnt << std::endl;
         std::cout << "pickuped :" << log.m_pickuped << std::endl;
     }
