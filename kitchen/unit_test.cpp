@@ -21,13 +21,13 @@ void test_getOrder(){
     PASS_TEST;
 }
 
-void test_storeOverflow(){
+void test_overflowShelf(){
 
     jsonProcessor orderSrc("orders.json"); 
     orderSrc.prepare();
 
     const size_t capacity = 30;
-    storeOverflow overflow(capacity,2);
+    overflowShelf overflow(capacity,2);
 
     size_t orderCnt= 0; 
     size_t discardCnt = 0;
@@ -268,7 +268,7 @@ int main(){
     test_kitchen();
 
     test_storeShelf();
-    test_storeOverflow();//~storeOverflow need more
+    test_overflowShelf();//~overflowShelf need more
 
     test_getOrder();
     test_orderfile_not_exist();

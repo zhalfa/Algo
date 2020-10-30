@@ -86,7 +86,7 @@ void kitchen::moveOverflowToShelves(order* pOrder){
         }
         check.clear();
 
-        storeOverflow* pOverflow = (storeOverflow*) m_pOverflow;
+        overflowShelf* pOverflow = (overflowShelf*) m_pOverflow;
         size_t moveCnt = pOverflow->getMoveList(info);
 
         if (moveCnt){
@@ -112,7 +112,7 @@ void kitchen::moveOverflowToShelves(order* pOrder){
     } 
 }
 
-size_t storeOverflow::getMoveList(shelvesInfoType& available){
+size_t overflowShelf::getMoveList(shelvesInfoType& available){
     size_t ret = 0;
     if (available.size()== 0) return ret;
 

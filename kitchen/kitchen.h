@@ -143,7 +143,7 @@ private:
     size_t m_cnt;
 };
 
-//this base class for shelf and overflow
+//this is base class for storeShelf and overflowShelf
 class baseShelf{
 
 public:
@@ -158,15 +158,20 @@ public:
     bool isFull(){return m_cnt == m_maxCnt;}
 
     temperature getTemperature(){return m_temp;}
-    //check whether an order exist 
+
+    //check whether an order exist on shelf 
     virtual bool hasOrder(order*pOrder) = 0;
-    //remove an order 
+
+    //remove an order from shelf
     virtual order* removeOrder(order* pOrder) = 0;
+
     //add an order, some derived class may discard an existing order
     virtual bool addOrder(order* pOrder, order** ppDiscard) = 0;
+
     //orders decay as time goes by, rm_list collect all decayed order
     virtual size_t decay(std::list<order*>& rm_list) = 0;
-    //support log for order contained 
+
+    //collect status of all orders on the shelf
     virtual size_t getOrdersInfo(string& str) = 0;
 
 protected:
@@ -297,10 +302,10 @@ struct shelfInfo {
 
 typedef std::unordered_map<temperature, shelfInfo*> shelvesInfoType; 
 
-class storeOverflow: public baseShelf {
+class overflowShelf: public baseShelf {
 
 public:
-    storeOverflow(size_t max, size_t modifier): baseShelf(any, max, modifier){
+    overflowShelf(size_t max, size_t modifier): baseShelf(any, max, modifier){
 
     }
 
@@ -706,7 +711,7 @@ private:
         m_shelves.push_back( new storeShelf(hot, 10, 1) );       
         m_shelves.push_back( new storeShelf(cold, 10, 1) );       
         m_shelves.push_back( new storeShelf(frozen, 10,1) );       
-        m_shelves.push_back( new storeOverflow(15, 2) );       
+        m_shelves.push_back( new overflowShelf(15, 2) );       
 
         ShelvesVectorIteratorType it = m_shelves.begin();
         ShelvesVectorIteratorType end = m_shelves.end();
