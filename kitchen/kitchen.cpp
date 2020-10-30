@@ -39,6 +39,7 @@ string convertMessageToString(messageID msg){
         case msgOrderDiscarded: return "OrderDiscarded";
         case msgOrderDecayed:   return "OrderDecayed  ";
         case msgOrderMissed:    return "OrderMissed   ";
+        case msgOrderMoved:     return "OrderMoved    ";
         default:                return "              ";
     }
 }
@@ -106,6 +107,7 @@ void kitchen::moveOverflowToShelves(order* pOrder){
                 delete pInfo;
             }
             info.clear();
+            if (m_pLog) m_pLog->onMessage(msgOrderMoved, "\n");
         }
     } 
 }

@@ -481,7 +481,8 @@ enum messageID{
     msgOrderPickuped,
     msgOrderDiscarded,
     msgOrderDecayed,
-    msgOrderMissed
+    msgOrderMissed,
+    msgOrderMoved
 };
 
 extern string convertMessageToString(messageID msg);
