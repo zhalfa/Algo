@@ -531,6 +531,7 @@ public:
         return buildStorage();
     }
 
+    //an order arrives
     bool onOrder( order* pOrder ){
 
         if (!m_kitchenReady || !pOrder) return false;
@@ -542,28 +543,33 @@ public:
         if ( ret && m_pLog) m_pLog->onMessage(msgOrderReceived, m_logDetails);
         return ret;
     }
-    
+
+    //number of valid orders kitchen has 
     size_t getOrdersCnt(){
         MutexType lock(m_mtx);
         return getStatus();
     }
     
+    //number of wasted orders, includes decayed and discarded
     size_t getWasteCnt(){
         MutexType lock(m_mtx);
         return m_wasteCnt;
     }
+
     //Read only for outside caller, no lock needed
+    
     boost::chrono::milliseconds getTime(){
         return m_time;
     }
 
-    //single thread unit test support
+    //just for unit test in single thread mode
     void update(){
         MutexType lock(m_mtx);
         m_time += gTimeInterval;
         decay();    
     }
 
+    //a courier arrives and pickup specified order
     bool onCourier(courier* pCourier){
 
         if (!m_kitchenReady || !pCourier) return false;
