@@ -182,7 +182,6 @@ class storeShelf: public baseShelf {
 public:
     storeShelf(temperature temp, size_t max, size_t modifier): baseShelf(temp, max, modifier){
 
-        m_shelfDecayModifier = 1;
     }
 
     bool hasOrder(order*pOrder){
@@ -303,7 +302,6 @@ class storeOverflow: public baseShelf {
 public:
     storeOverflow(size_t max, size_t modifier): baseShelf(any, max, modifier){
 
-        m_shelfDecayModifier = 2;
     }
 
     bool hasOrder(order*pOrder){
