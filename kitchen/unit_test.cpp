@@ -3,7 +3,7 @@
 //unit test 
 void test_orderfile_not_exist(){
 
-    jsonProcessor orderNoExist("/home/zhangl/_orders.json");
+    jsonProcessor orderNoExist("_orders.json");
     orderNoExist.prepare();
 
     PASS_TEST;
@@ -11,7 +11,7 @@ void test_orderfile_not_exist(){
 
 void test_getOrder(){
 
-    jsonProcessor orderSrc("/home/zhangl/orders.json"); 
+    jsonProcessor orderSrc("orders.json"); 
     orderSrc.prepare();
     order* p = orderSrc.getOrder();
     assert(p);
@@ -23,7 +23,7 @@ void test_getOrder(){
 
 void test_storeOverflow(){
 
-    jsonProcessor orderSrc("/home/zhangl/orders.json"); 
+    jsonProcessor orderSrc("orders.json"); 
     orderSrc.prepare();
 
     const size_t capacity = 30;
@@ -73,7 +73,7 @@ void test_storeOverflow(){
 
 void test_storeShelf(){
 
-    jsonProcessor orderSrc("/home/zhangl/orders.json"); 
+    jsonProcessor orderSrc("orders.json"); 
     orderSrc.prepare();
 
     const size_t capacity = 10;
@@ -122,7 +122,7 @@ void test_storeShelf(){
 
 void test_kitchen(){
     
-    jsonProcessor orderSrc("/home/zhangl/orders.json"); 
+    jsonProcessor orderSrc("orders.json"); 
     orderSrc.prepare();
 
     kitchen kit_test;
@@ -186,7 +186,7 @@ void test_kitchen_thread(){
     double save = gOrderAgeInc; 
     gOrderAgeInc = 2.0f;
 
-    jsonProcessor orderSrc("/home/zhangl/orders.json"); 
+    jsonProcessor orderSrc("orders.json"); 
     orderSrc.prepare();
     messageOutput log;
 
@@ -237,7 +237,7 @@ void test_ingester(){
 
     orderIngester ingester(&kit_test, &dispatcher);
 
-    string path ="/home/zhangl/orders.json";
+    string path ="orders.json";
     ingester.setFile(path);
     ingester.setRate(400);
     

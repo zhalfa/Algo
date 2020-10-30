@@ -13,7 +13,7 @@ cli: test main.o
 	$(cc) -L$(boost)/lib $(boost_static) $(dll) kitchen.o main.o -o cli 
 
 test : kitchen.o unit_test.o
-	$(cc) -L$(boost)/lib $(boost_static) $(dll) kitchen.o unit_test.o -o test 
+	$(cc) -L$(boost)/lib $(boost_static) $(dll) kitchen.o unit_test.o -o unit_test 
 
 .cpp.o:
 	$(cc) $(flag) -c $< -o $@
