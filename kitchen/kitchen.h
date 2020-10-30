@@ -15,6 +15,9 @@ using std::list;
 using std::unordered_map;
 using std::rand;
 
+#define SHELF_START {str+= "<-----------------------------------\n";}
+#define SHELF_END   {str+= "----------------------------------->\n";}
+
 enum temperature {
 
     hot = 0,
@@ -227,7 +230,7 @@ public:
         
         if (m_cnt){
 
-            str+= "<---------------------\n";
+            SHELF_START
             str+=convertTemperatureToString(getTemperature());
             str+= " : ";
             str+= std::to_string(m_cnt);
@@ -235,7 +238,7 @@ public:
             for (auto i: m_space){
                 i->getOrderInfo(str);
             }
-            str+= "--------------------->\n";
+            SHELF_END
         }
         return m_cnt;
     }
@@ -392,7 +395,7 @@ public:
 
         if (m_cnt){
 
-            str+= "<---------------------\n";
+            SHELF_START
             str+=convertTemperatureToString(getTemperature());
             str+= " : ";
             str+= std::to_string(m_cnt);
@@ -400,12 +403,12 @@ public:
             for (auto i: m_space){
                 i->getOrderInfo(str);
             }
-            str+= "--------------------->\n";
+            SHELF_END
         }
         return m_cnt;
     }    
 
-    void getMoveList(shelvesInfoType&);
+    size_t getMoveList(shelvesInfoType&);
 private:
     
     typedef boost::container::stable_vector<order*> OrderVectorType;
@@ -580,6 +583,7 @@ private:
     virtual void doWork(){
 
         m_time += gTimeInterval;
+        moveOverflowToShelves(NULL);
         decay();
     }
     
@@ -653,7 +657,6 @@ private:
                     shelf = findShelf(discard);
                     assert(shelf);
                     ret = shelf->addOrder(discard,NULL);
-                    //assert(!ret);
                     if (ret) discard = NULL;
 
                 }else{

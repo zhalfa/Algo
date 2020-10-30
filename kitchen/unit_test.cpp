@@ -239,7 +239,7 @@ void test_ingester(){
 
     string path ="/home/zhangl/orders.json";
     ingester.setFile(path);
-    ingester.setRate(2);
+    ingester.setRate(400);
     
     ingester.run();
 
