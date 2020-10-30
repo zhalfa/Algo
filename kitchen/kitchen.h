@@ -803,7 +803,8 @@ class courierDispatcher: public commonThread {
 
 public:
     courierDispatcher(kitchen *pk = NULL): m_pKitchen(pk){ }    
-
+    
+    // dispatcher received an courier request, assign courier later
     bool onCourier(courier cr){
         MutexType lock(m_mtx);
         return putCourier(cr);
