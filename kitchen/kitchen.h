@@ -846,8 +846,7 @@ public:
     }
 
     int setRate(unsigned int rate){
-        assert(rate < 1000);
-
+        if(rate == 0 || rate > 1000 ) rate = 500; 
         size_t t = 1000/rate; 
         m_TimeInterval = boost::chrono::milliseconds(t); 
         return 0;
