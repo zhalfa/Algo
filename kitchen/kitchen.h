@@ -824,13 +824,14 @@ public:
         return 0;
     }
 
-    void run(){
+    size_t run(){
+        size_t orderCnt = 0;
 
-        if (!m_jsonOK || !m_pDispatcher || !m_pKitchen ) return ;
+        if (!m_jsonOK || !m_pDispatcher || !m_pKitchen ) return orderCnt;
 
-        order *p;
-        while ( p = m_json.getOrder()){
+        while ( order *p = m_json.getOrder()){
             
+            orderCnt++;
             m_pKitchen->onOrder(p);
 
             courier tmp;
@@ -844,6 +845,7 @@ public:
 
             boost::this_thread::sleep_for(m_TimeInterval);
         }
+        return orderCnt;
     }
 
 private:

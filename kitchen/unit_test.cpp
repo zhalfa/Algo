@@ -241,7 +241,7 @@ void test_ingester(){
     ingester.setFile(path);
     ingester.setRate(400);
     
-    ingester.run();
+    size_t orderCnt= ingester.run();
 
     while( !kit_test.isEmpty())
         boost::this_thread::sleep_for(boost::chrono::seconds(4));
@@ -252,7 +252,9 @@ void test_ingester(){
     assert(dispatcher.isEmpty());
 
     size_t cnt = kit_test.getWasteCnt();
-    assert(order::s_ordersCnt == (132+1));
+    //there is a order object created in local scope;
+    //so delete times always biger than 1
+    assert(order::s_ordersCnt == (orderCnt+1));
 
     PASS_TEST;
 }
