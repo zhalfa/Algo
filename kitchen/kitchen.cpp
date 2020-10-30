@@ -44,6 +44,49 @@ string convertMessageToString(messageID msg){
     }
 }
 
+//if no existing order is discarded, return true, otherwise return false
+bool kitchen::putOrder(order* pOrder){
+    bool ret = false;
+
+    baseShelf* shelf = findShelf(pOrder);
+    assert(shelf);
+
+    order* discard = NULL;
+    if (shelf->getAvailableCnt()){
+        shelf->addOrder(pOrder,NULL);
+        ret = true;
+
+    }else{
+
+        if (m_pOverflow->isFull()){ moveOverflowToShelves(pOrder);};
+
+        if (m_pOverflow->isFull()){
+
+            m_pOverflow->addOrder(pOrder, &discard);
+            if (discard){
+
+                shelf = findShelf(discard);
+                assert(shelf);
+                ret = shelf->addOrder(discard,NULL);
+                if (ret) discard = NULL;
+
+            }else{
+                ret = true;
+            }
+
+        }else{
+
+            ret = m_pOverflow->addOrder(pOrder, &discard);
+        }
+    }
+
+    if (discard){ 
+        waste(discard);
+        if (m_pLog) m_pLog->onMessage(msgOrderDiscarded, m_logDetails);
+    }
+    return ret;
+}
+
 // move some orders into its shelf from overflow area
 // when overflow is full. add order to kitchen can triggle 
 // this scenario. valid pOrder means the shelf with the
