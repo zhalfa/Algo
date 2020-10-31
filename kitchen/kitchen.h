@@ -503,6 +503,10 @@ struct courier{
     courier(): m_pickupTime(0), m_pOrder(NULL) {} 
     courier(size_t t, order* p): m_pickupTime(t), m_pOrder(p) {}
 
+    void deliverOrder(order* p){
+        if (p) delete p;
+    }
+
     boost::chrono::milliseconds m_pickupTime; 
     order* m_pOrder;
 };
@@ -581,7 +585,8 @@ public:
 
             getStatus(true);
             if (m_pLog) m_pLog->onMessage(msgOrderPickuped, m_logDetails);
-            delete p;
+
+            pCourier->deliverOrder(p);            
 
         }else{
 

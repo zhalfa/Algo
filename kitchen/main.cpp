@@ -47,6 +47,8 @@ int main(int argc, char *argv[]){
         return 0;
     }   
     
+    std::cout << "file : " << file << " rate : " << std::to_string(rate) << std::endl;
+
     kitchen kitchen_simulator;
     messageOutput log(true);
 

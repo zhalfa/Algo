@@ -10,15 +10,21 @@ Developement environment
 
 1. How to configure Makefile
 
-    variable boost in Makefile need to be changed to actual boost directory
+    variable boost in Makefile need to be changed to actual boost directory.
     I had boost library built by myself. so boost:=/home/zhangl/boost_bd
 
 2. How to build
 
     run make in this directory, two binaries unit_test and cli generated
 
-    if link error shows, please run export PATH=$PATH:"/home/zhangl/boost_bd/bin"
-    or add it to your .bashrc with the actual boost directory then make again
+    if link error shows, make sure that Makefile specify correct boost binary
+    path, then make again
+
+    before run any binary, please run export PATH=$PATH:"YOUR_boost_LIBRARY/bin"
+    or add it to your .bashrc with the actual boost directory 
+
+    in my environment, export PATH=$PATH:"/home/zhangl/boost_bd/bin"
+    in other linux system, you may use LD_LIBRARY_PATH instead of PATH    
 
 3. How to do unit test
 
@@ -29,6 +35,8 @@ Developement environment
     run command ./cli -f orders.json -R 2
     then kitchen simulation begins, log will be shown on console
 
+    my preference is ./cli -f orders.json -R 2 >log
+
 5. Design decision
 
     for adding, finding, removing an order in a shelf as quickly as possible,
@@ -37,7 +45,7 @@ Developement environment
 
     overflow shelf need random access, if it is full and randomly select and 
     discard an order. std::vector does not suit, because of an order removed,
-    some or even all indece will be invalid. boost::stable_vector is reasonable
+    some or even all indices will be invalid. boost::stable_vector is reasonable
     choice.
 
     for courier management, priority queue based on heap, with courier`s arriving
