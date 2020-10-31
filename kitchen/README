@@ -1,17 +1,32 @@
+Developement environment
 
-How to build
+    Cygwin 8.3.1-1
 
+    gcc (GCC) 10.2.0
 
-How to configure Makefile
+    GNU gdb (GDB) (Cygwin 8.3.1-1) 8.3.1
 
+    boost_1_71_0
 
-How to do unit test
+1. How to configure Makefile
 
+    variable boost in Makefile need to be changed to actual boost directory
+    I had boost library built by myself. so boost:=/home/zhangl/boost_bd
 
-How to do kitchen system simulation
+2. How to build
 
+    run make in this directory, two binaries unit_test and cli generated
 
-Design decision
+3. How to do unit test
+
+    run command ./unit_test , it will show test result.
+
+4. How to do kitchen system simulation
+
+    run command ./cli -f orders.json -R 2
+    then kitchen simulation begins, log will be shown on console
+
+5. Design decision
 
 
 
