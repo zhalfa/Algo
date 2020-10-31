@@ -76,7 +76,7 @@ int main(int argc, char *argv[]){
         kitchen_simulator.stop();
 
         dispatcher.stop();
-        assert(dispatcher.isEmpty());
+        //assert(dispatcher.isEmpty());
 
         size_t cnt = kitchen_simulator.getWasteCnt();
         std::cout << "ingested :" << orderCnt << std::endl;
