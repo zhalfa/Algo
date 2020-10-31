@@ -17,6 +17,9 @@ Developement environment
 
     run make in this directory, two binaries unit_test and cli generated
 
+    if link error shows, please run export PATH=$PATH:"/home/zhangl/boost_bd/bin"
+    or add it to your .bashrc with the actual boost directory then make again
+
 3. How to do unit test
 
     run command ./unit_test , it will show test result.
@@ -28,5 +31,22 @@ Developement environment
 
 5. Design decision
 
+    for adding, finding, removing an order in a shelf as quickly as possible,
+    double linked list and hash map are used at the same time. std::list and
+    std::unordered_map is suitable choice.
 
+    overflow shelf need random access, if it is full and randomly select and 
+    discard an order. std::vector does not suit, because of an order removed,
+    some or even all indece will be invalid. boost::stable_vector is reasonable
+    choice.
 
+    for courier management, priority queue based on heap, with courier`s arriving
+    time as key value is suitable. boost::heap::priority_queue is a reasonable 
+    candidate.
+
+    when adding an order, if its destination shelf and overflow shelf are full.
+    moving orders from overflow shelf to other shelves is needed passively. 
+    this action is more time-consuming than other operation. it may make other
+    threads waiting. positive policy is to make it as routine, if other shelves 
+    are valid, then move orders from overflow shelf into them. those two policies
+    are all implemented.
