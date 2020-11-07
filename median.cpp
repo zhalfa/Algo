@@ -1,4 +1,5 @@
 #include <vector>
+#include <cassert>
 
 using std::vector;
 
@@ -75,6 +76,7 @@ public:
 
                 return src[begin+k];
             }
+            assert(false);
             return 0; //be carefull
         }
 
@@ -116,12 +118,12 @@ public:
 
         // if pos is invalid, logic is wrong    
 
-        size_t front_small = pSmall->front(); 
-        size_t back_small = pSmall->size() - front_small;
+        size_t small_front = pSmall->front(); 
+        size_t small_back = pSmall->size() - small_front;
 
-        if ( (halfBig + front_small) >= (k+1) ){
+        if ( (halfBig + small_front) >= (k+1) ){
 
-            if (front_small){
+            if (small_front){
                 range new_a(pBig->begin, pBig->mid(), pBig->src);
                 range new_b(pSmall->begin, pSmall->split, pSmall->src);
 
@@ -134,14 +136,49 @@ public:
 
             range new_a(pBig->mid()+1, pBig->end, pBig->src);
 
-            if (back_small){
+            if (small_back){
                 range new_b(pSmall->split, pSmall->end, pSmall->src);
 
-                findtheKth( new_a, new_b, k - halfBig - front_small);
+                findtheKth( new_a, new_b, k - halfBig - small_front);
             }else{
-                if (new_a.size())new_a.at(k - halfBig - front_small);
+                if (new_a.size())new_a.at(k - halfBig - small_front);
             }
         }
 
     }
 };
+
+#include <cstdlib>
+#include <algorithm>
+#include <iostream>
+
+void fillVector(std::vector<int>& vct, size_t vctSize){
+
+    using std::rand;
+
+    int size = std::rand()% vctSize;
+    if (size == 0) size =2;
+
+    for ( auto i=0; i< size; i++){
+        vct.push_back( std::rand()%20);
+    }
+
+    std::sort(vct.begin(), vct.end(), std::less<int>());
+    for (auto a : vct) {
+        std::cout << " "<< a << " , ";
+    }
+    std::cout << std::endl;
+}
+
+int main(){
+
+    std::vector<int> A;
+    std::vector<int> B;
+
+    fillVector(A, 5);
+    fillVector(B, 5);
+
+    Solution sol;
+    sol.findMedianSortedArrays(A, B);
+
+}
