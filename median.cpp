@@ -163,11 +163,8 @@ void fillVector(std::vector<int>& vct, size_t vctSize){
 
     using std::rand;
 
-    int size = std::rand()% vctSize;
-    if (size == 0) size =2;
-
-    for ( auto i=0; i< size; i++){
-        vct.push_back( std::rand()%20);
+    for ( auto i=0; i< vctSize; i++){
+        vct.push_back( std::rand()%30);
     }
 
     std::sort(vct.begin(), vct.end(), std::less<int>());
@@ -220,8 +217,22 @@ void test_3(){
     assert((15+17)/2.0f == res);
 }
 
+void test_4(){
+
+    std::vector<int> A;
+    std::vector<int> B;
+
+    fillVector(A, 9);
+    fillVector(B, 5);
+
+    Solution sol;
+    double res = sol.findMedianSortedArrays(A, B);
+
+    std::cout << __FUNCTION__ << std::endl;
+}
 int main(){
-    
+
+    test_4(); 
     test_3();
     test_2();
     test_1();
