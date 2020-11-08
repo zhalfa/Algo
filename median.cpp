@@ -30,6 +30,8 @@ public:
 
             std::cout << " " << val1 << std::endl;
             std::cout << " " << val2 << std::endl;
+
+            return (val1+val2)/2.0f;
         }
 
         return 0;        
@@ -198,8 +200,30 @@ void test_1(){
     assert(12 == res);
 }
 
+void test_2(){
+
+    std::vector<int> A = {2, 15, 19};
+    std::vector<int> B = {8, 17};
+
+    Solution sol;
+    double res = sol.findMedianSortedArrays(A, B);
+    assert(15 == res);
+}
+
+void test_3(){
+
+    std::vector<int> A = {2, 15, 19};
+    std::vector<int> B = {8, 17, 21};
+
+    Solution sol;
+    double res = sol.findMedianSortedArrays(A, B);
+    assert((15+17)/2.0f == res);
+}
+
 int main(){
     
+    test_3();
+    test_2();
     test_1();
     test_0();
     return 0;
