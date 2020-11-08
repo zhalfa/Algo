@@ -20,6 +20,7 @@ public:
             int val = findtheKth(a, b, mid);
 
             std::cout << " " << val << std::endl;
+            return val;
 
         }else{
             mid = mid/2;
@@ -144,7 +145,7 @@ public:
             range new_a(pBig->mid()+1, pBig->end, pBig->src);
 
             if (small_back){
-                range new_b((pSmall->split < pSmall->begin)? pSmall->begin : pSmall->split, pSmall->end, pSmall->src);
+                range new_b((pSmall->split < pSmall->begin)? pSmall->begin : pSmall->split + 1, pSmall->end, pSmall->src);
 
                 ret = findtheKth( new_a, new_b, k - halfBig - small_front);
             }else{
@@ -183,12 +184,23 @@ void test_0(){
     //fillVector(B, 5);
 
     Solution sol;
-    sol.findMedianSortedArrays(A, B);
+    double res = sol.findMedianSortedArrays(A, B);
+    assert(8 == res);
+}
 
+void test_1(){
+
+    std::vector<int> A = {2, 15, 19};
+    std::vector<int> B = {8, 12};
+
+    Solution sol;
+    double res = sol.findMedianSortedArrays(A, B);
+    assert(12 == res);
 }
 
 int main(){
     
+    test_1();
     test_0();
     return 0;
 }
