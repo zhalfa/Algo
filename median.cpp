@@ -113,9 +113,8 @@ public:
 
             if ((k>=0)&& (k<2)){
 
-                //if (k==0) return std::min(a.at(0), b.at(0));
-                //if (k==1) return std::max(a.at(0), b.at(0));
-
+                if (k==0) return std::min(a.at(0), b.at(0));
+                if (k==1) return std::max(a.at(0), b.at(0));
             }
         }
     
