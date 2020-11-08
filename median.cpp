@@ -173,14 +173,12 @@ void fillVector(std::vector<int>& vct, size_t vctSize){
     using std::rand;
 
     for ( auto i=0; i< vctSize; i++){
-        vct.push_back( std::rand()%30);
+        vct.push_back( std::rand()%30000);
     }
 
     std::sort(vct.begin(), vct.end(), std::less<int>());
     for (auto a : vct) {
-        std::cout << " "<< a << " , ";
     }
-    std::cout << std::endl;
 }
 
 void test_0(){
@@ -191,6 +189,8 @@ void test_0(){
     Solution sol;
     double res = sol.findMedianSortedArrays(A, B);
     assert(8 == res);
+
+    std::cout << __FUNCTION__ << std::endl;
 }
 
 void test_1(){
@@ -201,6 +201,8 @@ void test_1(){
     Solution sol;
     double res = sol.findMedianSortedArrays(A, B);
     assert(12 == res);
+
+    std::cout << __FUNCTION__ << std::endl;
 }
 
 void test_2(){
@@ -211,6 +213,8 @@ void test_2(){
     Solution sol;
     double res = sol.findMedianSortedArrays(A, B);
     assert(15 == res);
+
+    std::cout << __FUNCTION__ << std::endl;
 }
 
 void test_3(){
@@ -221,6 +225,8 @@ void test_3(){
     Solution sol;
     double res = sol.findMedianSortedArrays(A, B);
     assert((15+17)/2.0f == res);
+
+    std::cout << __FUNCTION__ << std::endl;
 }
 
 void test_4(){
@@ -243,11 +249,17 @@ void test_5(){
     std::vector<int> B;
 
     fillVector(A, 1000);
-    fillVector(B, 1000);
+    fillVector(B, 1001);
 
     Solution sol;
     double res = sol.findMedianSortedArrays(A, B);
 
+    std::vector<int> C;
+    std::merge(A.begin(), A.end(), B.begin(), B.end(), std::back_inserter(C));
+
+    int c = C[C.size()/2];
+    
+    assert(c == res);
     std::cout << __FUNCTION__ << std::endl;
 }
 
@@ -264,6 +276,8 @@ void test_6(){
     Solution sol;
     double res = sol.findMedianSortedArrays(A, B);
     assert((9+8)/2.0f == res);
+
+    std::cout << __FUNCTION__ << std::endl;
 }
 
 int main(){
