@@ -108,9 +108,19 @@ public:
             if (b.size() ) ret = b.at(k);
             return ret;
         }
+
+        if ((a.size()==1) &&(b.size()==1)){
+
+            if ((k>=0)&& (k<2)){
+
+                //if (k==0) return std::min(a.at(0), b.at(0));
+                //if (k==1) return std::max(a.at(0), b.at(0));
+
+            }
+        }
     
         range *pBig, *pSmall;
-        if(a.size() > b.size()){
+        if(a.size() >= b.size()){
 
             pBig = &a;
             pSmall = &b;
@@ -179,9 +189,6 @@ void test_0(){
     std::vector<int> A = {2, 3, 9};
     std::vector<int> B = {8, 12};
 
-    //fillVector(A, 5);
-    //fillVector(B, 5);
-
     Solution sol;
     double res = sol.findMedianSortedArrays(A, B);
     assert(8 == res);
@@ -230,8 +237,40 @@ void test_4(){
 
     std::cout << __FUNCTION__ << std::endl;
 }
+
+void test_5(){
+
+    std::vector<int> A;
+    std::vector<int> B;
+
+    fillVector(A, 1000);
+    fillVector(B, 1000);
+
+    Solution sol;
+    double res = sol.findMedianSortedArrays(A, B);
+
+    std::cout << __FUNCTION__ << std::endl;
+}
+
+void test_6(){
+#if 1
+    std::vector<int> A = {9};
+    std::vector<int> B = {8}; 
+    //change to 8, it is ok why ???
+    //fix, now change to 8, the same with 9
+#else
+    std::vector<int> A = { 0 ,  3 ,  6 ,  8 ,  9 ,  13 ,  14 ,  14 ,  20 };
+    std::vector<int> B = { 0 ,  8 ,  9 ,  20 ,  28 };
+#endif
+    Solution sol;
+    double res = sol.findMedianSortedArrays(A, B);
+    assert((9+8)/2.0f == res);
+}
+
 int main(){
 
+    test_6(); 
+    test_5(); 
     test_4(); 
     test_3();
     test_2();
