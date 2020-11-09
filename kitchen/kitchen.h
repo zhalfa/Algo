@@ -437,21 +437,31 @@ class commonThread{
 public:
     void start(){
         MutexType lock(m_mtx);
-        m_start = true;
 
-        boost::thread thr([this](){
-                
-                this->run();
-            }
-        );
-        m_thread = boost::move(thr);
+        if(!m_start){
+            m_start = true;
+
+            boost::thread thr([this](){
+
+                    this->run();
+                    }
+                    );
+            m_thread = boost::move(thr);
+        }
     }
     
     void stop(){
         m_mtx.lock();
-        m_start = false;
+
+        bool joinNeeded = false;        
+        if(m_start){ 
+
+            m_start = false;
+            joinNeeded = true;
+        }
         m_mtx.unlock();
-        m_thread.join();
+
+        if (joinNeeded) m_thread.join();
     }
 
     bool isEmpty(){
