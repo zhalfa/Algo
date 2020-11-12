@@ -471,9 +471,11 @@ public:
 
     void run(){
 
-        while(m_start){
+        for(;;){
             {
                 MutexType lock(m_mtx);
+
+                if (!m_start) break;
                 doWork();
             }   
             boost::this_thread::sleep_for(gTimeInterval);
@@ -852,10 +854,10 @@ public:
             courier tmp;
             tmp.m_pOrder = p;
             //random 2 ~ 6 seconds;
-            size_t random = std::rand()%7;
-            if (random < 2 ) random = 2;
+            size_t random = std::rand()%4001;
+            random += 2000;
 
-            tmp.m_pickupTime = m_pKitchen->getTime() + boost::chrono::milliseconds(1000*random);
+            tmp.m_pickupTime = m_pKitchen->getTime() + boost::chrono::milliseconds(random);
             m_pDispatcher->onCourier(tmp);
 
             boost::this_thread::sleep_for(m_TimeInterval);
