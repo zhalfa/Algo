@@ -6,17 +6,32 @@
 #include <typeinfo>       // operator typeid
 #include <exception>      // std::exception
 
-class Polymorphic {virtual void member(){}};
+class Polymorphic {
+
+virtual void member(){}
+
+};
+
+void test_exception(){
+
+    try
+    {
+        Polymorphic * pb = 0;
+        typeid(*pb);  // throws a bad_typeid exception
+    }
+    catch (std::exception& e)
+    {
+        std::cerr << "exception caught: " << e.what() << '\n';
+    }
+}
 
 int main () {
-  try
-  {
-    Polymorphic * pb = 0;
-    typeid(*pb);  // throws a bad_typeid exception
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "exception caught: " << e.what() << '\n';
-  }
-  return 0;
+
+    int cnt = 100;
+    while (cnt ){
+
+        test_exception();
+        cnt--;
+    }
+    return 0;
 }
