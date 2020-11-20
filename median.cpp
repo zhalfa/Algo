@@ -10,8 +10,8 @@ class Solution {
 public:
     double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {
 
-        range a(0, nums1.size()-1, &nums1);
-        range b(0, nums2.size()-1, &nums2);
+        range a(0, nums1.size()-1, nums1.data());
+        range b(0, nums2.size()-1, nums2.data());
 
         int mid =  nums1.size() + nums2.size();
         if (mid%2 == 1){
@@ -39,7 +39,7 @@ public:
     
     struct range {
 
-        range(int b, int e, vector<int>* s ): begin(b), end(e), src(s){
+        range(int b, int e, int* s ): begin(b), end(e), src(s){
 
             split = -1;
         }
@@ -59,7 +59,7 @@ public:
             return end - begin + 1;
         }
         size_t mid(){return (begin+end)/2;}
-        int midVal(){return (*src)[mid()];}
+        int midVal(){return src[mid()];}
 
         size_t firstHalfSize(){return mid()- begin + 1;}
 
@@ -78,7 +78,7 @@ public:
             int i;
             for( i = begin; i<= end; i++){
                 
-                if ((*src)[i] > val ){
+                if (src[i] > val ){
 
                     split = i - 1;
                     break;
@@ -87,7 +87,7 @@ public:
             }
             if (i > end) split = end;
 #else
-            int* vec = (*src).data();
+            int* vec = src;
             int s = begin;
             int e = end;
             while(s <= e){
@@ -128,7 +128,7 @@ public:
 
             if ( (k >= 0) && (k<size()) ){
 
-                return (*src)[begin+k];
+                return src[begin+k];
             }
             assert(false);
             return -1; //be carefull
@@ -140,7 +140,7 @@ public:
             int i = begin;
             while(i <= end){
 
-                std::cout << (*src)[i++] << " ; ";
+                std::cout << src[i++] << " ; ";
             }
             std::cout << std::endl;
         };
@@ -148,7 +148,7 @@ public:
         int split;
         int begin;
         int end;
-        vector<int>* src;
+        int* src;
 
     };
 
