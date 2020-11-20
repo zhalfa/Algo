@@ -44,6 +44,16 @@ public:
             split = -1;
         }
 
+        range& operator=(const range& rhs){
+
+            begin = rhs.begin;
+            end = rhs.end;
+            src = rhs.src;
+            split = rhs.split;
+
+            return *this;
+        }
+
         size_t size(){
             if (end < begin ) return 0;
             return end - begin + 1;
@@ -131,6 +141,7 @@ public:
 
     };
 
+#if 1
     int findtheKth( range a, range b, size_t k ){
         int ret = -1;
         
@@ -197,6 +208,84 @@ public:
         }
         return ret;
     }
+#else
+    int findtheKth( range a, range b, size_t k ){
+        int ret = -1;
+
+        for(;;){        
+
+            if (a.size()== 0 || b.size()== 0) {
+
+                if (a.size() ) ret = a.at(k);
+                if (b.size() ) ret = b.at(k);
+                return ret;
+            }
+
+            if ((a.size()==1) &&(b.size()==1)){
+
+                if ((k>=0)&& (k<2)){
+
+                    if (k==0) return std::min(a.at(0), b.at(0));
+                    if (k==1) return std::max(a.at(0), b.at(0));
+                }
+            }
+
+            range *pBig, *pSmall;
+            if(a.size() >= b.size()){
+
+                pBig = &a;
+                pSmall = &b;
+
+            }else{
+
+                pBig = &b;
+                pSmall = &a;
+            }
+
+            int midVal = pBig->midVal();
+
+            size_t sizeBig = pBig->size();
+            size_t halfBig = pBig->firstHalfSize();
+
+            pSmall->splitByVal( midVal);
+
+            size_t small_front = pSmall->front(); 
+            size_t small_back = pSmall->size() - small_front;
+
+            if ( (halfBig + small_front) >= (k+1) ){
+
+                if (small_front){
+                    range new_a(pBig->begin, pBig->mid(), pBig->src);
+                    range new_b(pSmall->begin, pSmall->split, pSmall->src);
+
+                    a = new_a;
+                    b = new_b;
+                    //ret = findtheKth( new_a, new_b, k);
+                }else{
+                    ret = pBig->at(k);
+                    break;
+                }
+
+            }else{
+
+                range new_a(pBig->mid()+1, pBig->end, pBig->src);
+
+                if (small_back){
+                    range new_b((pSmall->split < pSmall->begin)? pSmall->begin : pSmall->split + 1, pSmall->end, pSmall->src);
+
+                    a = new_a;
+                    b = new_b;
+                    k -=(halfBig + small_front);
+                    //ret = findtheKth( new_a, new_b, k - halfBig - small_front);
+                }else{
+                    if (new_a.size()) ret = new_a.at(k - halfBig - small_front);
+                    break;
+                }
+            }
+        }
+        return ret;
+    }
+#endif
 };
 
 
