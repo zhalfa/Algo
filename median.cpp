@@ -10,8 +10,8 @@ class Solution {
 public:
     double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {
 
-        range a(0, nums1.size()-1, nums1);
-        range b(0, nums2.size()-1, nums2);
+        range a(0, nums1.size()-1, &nums1);
+        range b(0, nums2.size()-1, &nums2);
 
         int mid =  nums1.size() + nums2.size();
         if (mid%2 == 1){
@@ -39,7 +39,7 @@ public:
     
     struct range {
 
-        range(int b, int e, vector<int>& s ): begin(b), end(e), src(s){
+        range(int b, int e, vector<int>* s ): begin(b), end(e), src(s){
 
             split = -1;
         }
@@ -59,7 +59,7 @@ public:
             return end - begin + 1;
         }
         size_t mid(){return (begin+end)/2;}
-        int midVal(){return src[mid()];}
+        int midVal(){return (*src)[mid()];}
 
         size_t firstHalfSize(){return mid()- begin + 1;}
 
@@ -78,7 +78,7 @@ public:
             int i;
             for( i = begin; i<= end; i++){
                 
-                if (src[i] > val ){
+                if ((*src)[i] > val ){
 
                     split = i - 1;
                     break;
@@ -87,7 +87,7 @@ public:
             }
             if (i > end) split = end;
 #else
-            int* vec = src.data();
+            int* vec = (*src).data();
             int s = begin;
             int e = end;
             while(s <= e){
@@ -128,20 +128,31 @@ public:
 
             if ( (k >= 0) && (k<size()) ){
 
-                return src[begin+k];
+                return (*src)[begin+k];
             }
             assert(false);
             return -1; //be carefull
         }
 
+        void show(){
+            std::cout << "info: " << begin << " : " << end << " : " << split << std::endl;
+            std::cout << "content: ";
+            int i = begin;
+            while(i <= end){
+
+                std::cout << (*src)[i++] << " ; ";
+            }
+            std::cout << std::endl;
+        };
+
         int split;
         int begin;
         int end;
-        vector<int>& src;
+        vector<int>* src;
 
     };
 
-#if 1
+#if 0
     int findtheKth( range a, range b, size_t k ){
         int ret = -1;
         
@@ -213,21 +224,26 @@ public:
         int ret = -1;
 
         for(;;){        
-
+#if 0
+            a.show();
+            b.show();
+            std::cout << "K: " << k << std::endl;
+#endif
             if (a.size()== 0 || b.size()== 0) {
 
                 if (a.size() ) ret = a.at(k);
                 if (b.size() ) ret = b.at(k);
-                return ret;
+                break;
             }
 
             if ((a.size()==1) &&(b.size()==1)){
 
                 if ((k>=0)&& (k<2)){
 
-                    if (k==0) return std::min(a.at(0), b.at(0));
-                    if (k==1) return std::max(a.at(0), b.at(0));
+                    if (k==0) ret = std::min(a.at(0), b.at(0));
+                    if (k==1) ret = std::max(a.at(0), b.at(0));
                 }
+                break;
             }
 
             range *pBig, *pSmall;
