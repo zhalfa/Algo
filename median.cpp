@@ -64,6 +64,7 @@ public:
 
         bool splitByVal(int val){
 
+#if 0
             int i;
             for( i = begin; i<= end; i++){
                 
@@ -75,7 +76,41 @@ public:
                     
             }
             if (i > end) split = end;
+#else
+            int* vec = src.data();
+            int s = begin;
+            int e = end;
+            while(s <= e){
 
+                int mid = (s+e)/2;
+
+                if ( val < vec[mid] ){
+
+                    e = mid - 1;
+
+                }else if (val == vec[mid]){
+                    split = mid;
+                    break;
+
+                }else{
+
+                    s = mid + 1;
+                }
+
+                if (s > e){
+
+                    if (val < vec[mid] ){
+                        split = mid - 1;
+                    }else{
+                        split = mid + 1;
+
+                        if (split > end) split = end;
+
+                    }
+                }
+            }
+
+#endif
             if ((split >= begin) &&(split <= end)) {
                 return true;
             }
