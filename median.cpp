@@ -102,10 +102,7 @@ public:
                     if (val < vec[mid] ){
                         split = mid - 1;
                     }else{
-                        split = mid + 1;
-
-                        if (split > end) split = end;
-
+                        split = mid;
                     }
                 }
             }
@@ -315,8 +312,22 @@ void test_6(){
     std::cout << __FUNCTION__ << std::endl;
 }
 
+void test_7(){
+
+    std::vector<int> A = {1,3,4};
+    std::vector<int> B = {2,5,6}; 
+
+    Solution sol;
+    double res = sol.findMedianSortedArrays(A, B);
+
+    assert((4+3)/2.0f == res);
+
+    std::cout << __FUNCTION__ << std::endl;
+}
+
 int main(){
 
+    test_7();
     test_6(); 
     test_5(); 
     test_4(); 
