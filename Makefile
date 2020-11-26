@@ -7,7 +7,11 @@ dll:=   $(boost)/bin/cygboost_thread.dll \
 		$(boost)/bin/cygboost_chrono.dll \
 		$(boost)/bin/cygboost_program_options.dll
 
-extra:= -D_WIN32_WINNT=0x0601 -D__USE_W32_SOCKETS
+extra:= -D__CYGWIN__ -D_WIN32_WINNT=0x0601 -D__USE_W32_SOCKETS
+
+#/usr/include/w32api/winerror.h cannot find __MSABI_LONG
+#found in /usr/include/w32api/_mingw_mac.h
+
 
 all: boost_asio
 
