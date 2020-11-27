@@ -1,4 +1,5 @@
-#include "w32api/_mingw_mac.h"
+#undef __LP64__
+#include "w32api/_mingw.h"
 
 #include <boost/asio.hpp>
 #include <iostream>
