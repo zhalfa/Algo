@@ -35,6 +35,6 @@ flag:= -std=c++11
 
 all: boost_asio
 
-boost_asio: boost_io_test.cpp
+boost_asio: boost_io_test_cygwin.cpp
 	g++ $(flag) $(extra) $(include) -L$(boost)/lib $(boost_static) $(dll)\
-		boost_io_test.cpp -o boost_asio
+		boost_io_test_cygwin.cpp -o boost_asio
