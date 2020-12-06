@@ -3,11 +3,15 @@ boost:= /usr/inclued
 link:= -lpthread -lboost_coroutine
 flag:= -std=c++11 -g
 
-all: boost_asio
+des:= asio_boost rvalue_boost
+
+all: $(des)
     
 clean:
-	rm boost_asio    
+	rm $(des) 
 
-boost_asio: boost_asio_try.cpp
+asio_boost: boost_asio_try.cpp
 	g++ $(flag) $< -o $@  $(link)
 
+rvalue_boost: rvalue_reference.cpp 
+	g++ $(flag) $< -o $@  $(link)
