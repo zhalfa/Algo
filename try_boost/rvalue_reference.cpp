@@ -1,6 +1,5 @@
 #include <string>
 #include <vector>
-
 /*
     constexpr how to use it
 
@@ -23,7 +22,7 @@ public:
         return 0;
     };
 
-#if 1    
+#if 0    
     //a workaround
 
     TCPSocket(TCPSocket& that){
@@ -33,7 +32,7 @@ public:
     }
 #endif
 
-    TCPSocket(TCPSocket&& rvref) : m_socket_fd(-1) {
+    TCPSocket(TCPSocket&& rvref) noexcept : m_socket_fd(-1) {
     //p503 in book
         std::swap(m_socket_fd, rvref.m_socket_fd);
     }
@@ -71,7 +70,8 @@ int main(){
     performIO(connectToService());
 
     TCPSocket socket = connectToService();
-    performIO(socket);    
+    //such expressions are called xvalues, the x standsfor expired
+    performIO(std::move(socket));    
 
     return 0;
 }
