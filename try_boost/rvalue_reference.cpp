@@ -1,5 +1,7 @@
 #include <string>
 #include <vector>
+#include <boost/move/move.hpp>
+
 /*
     constexpr how to use it
 
@@ -40,6 +42,8 @@ public:
     TCPSocket(const TCPSocket&) = delete;
     TCPSocket& operator = (const TCPSocket&) = delete;
 
+    void setFd(int val){ m_socket_fd = val; }
+
 private:
 
     int m_socket_fd;
@@ -70,9 +74,12 @@ int main(){
     performIO(connectToService());
 
     TCPSocket socket = connectToService();
-    //such expressions are called xvalues, the x standsfor expired
-    performIO(std::move(socket));    
+    
+    socket.setFd(1000);
+    //such expressions are called xvalues, the x stands for expired
+    performIO(boost::move(socket));
 
+    socket;
     return 0;
 }
 
