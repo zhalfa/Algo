@@ -383,7 +383,7 @@ public:
 
                     a = new_a;
                     b = new_b;
-                    //ret = findtheKth( new_a, new_b, k);
+
                 }else{
 
                     ret = retValue(*pBig, k, detail);
@@ -400,7 +400,7 @@ public:
                     a = new_a;
                     b = new_b;
                     k -=(halfBig + small_front);
-                    //ret = findtheKth( new_a, new_b, k - halfBig - small_front);
+
                 }else{
                     int tmp = k - halfBig - small_front;
 
