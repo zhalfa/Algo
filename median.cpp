@@ -4,30 +4,38 @@
 #include <algorithm>
 #include <iostream>
 
+#define TRY_FAST
+//#define RECURSIVE_CALL
+
 using std::vector;
 
 class Solution {
 public:
     double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {
 
-        range a(0, nums1.size()-1, nums1.data());
-        range b(0, nums2.size()-1, nums2.data());
+        range a(0, nums1.size()-1, nums1.data(), 1);
+        range b(0, nums2.size()-1, nums2.data(), 2);
+
+        aux detail;
 
         int mid =  nums1.size() + nums2.size();
         if (mid%2 == 1){
             mid = mid/2;
 
-            int val = findtheKth(a, b, mid);
+            int val = findtheKth(a, b, mid, detail);
 
             std::cout << " " << val << std::endl;
             return val;
 
         }else{
             mid = mid/2;
-            int val1 = findtheKth(a, b, mid);
+            int val1 = findtheKth(a, b, mid, detail);
+#ifdef TRY_FAST
+            int val2 = findPre(a, b, mid, detail);
+#else
             mid --;
-            int val2 = findtheKth(a, b, mid);
-
+            int val2 = findtheKth(a, b, mid, detail);
+#endif
             std::cout << " " << val1 << std::endl;
             std::cout << " " << val2 << std::endl;
 
@@ -37,9 +45,15 @@ public:
         return 0;        
     }
     
+    struct aux{
+
+        int origin;
+        int pos;
+    };
+
     struct range {
 
-        range(int b, int e, int* s ): begin(b), end(e), src(s){
+        range(int b, int e, int* s, int org ): begin(b), end(e), src(s), origin(org){
 
             split = -1;
         }
@@ -50,6 +64,7 @@ public:
             end = rhs.end;
             src = rhs.src;
             split = rhs.split;
+            origin = rhs.origin;
 
             return *this;
         }
@@ -74,7 +89,8 @@ public:
 
         bool splitByVal(int val){
 
-#if 0
+#ifndef TRY_FAST
+            //a little slower than the other
             int i;
             for( i = begin; i<= end; i++){
                 
@@ -134,6 +150,7 @@ public:
             return -1; //be carefull
         }
 
+#ifdef SHOW_DETAIL 
         void show(){
             std::cout << "info: " << begin << " : " << end << " : " << split << std::endl;
             std::cout << "content: ";
@@ -144,15 +161,60 @@ public:
             }
             std::cout << std::endl;
         };
+#endif
 
         int split;
         int begin;
         int end;
         int* src;
+        int origin;
 
     };
 
-#if 0
+    int findPre( range a, range b, size_t k, const aux& detail ){
+
+        assert((detail.origin > 0) && (detail.origin < 3));
+
+        range *cur, *another;
+        if(detail.origin == 1){
+
+            cur = &a;
+            another = &b;
+
+        }else{
+
+            cur = &b;
+            another = &a;
+        }
+
+        if( detail.pos == k ){
+
+            assert(detail.pos > cur->begin);
+            return cur->at(k - 1);
+        } 
+
+        if ( detail.pos == cur->begin ){
+            
+            return another->at(k - 1);
+        }
+
+        assert(detail.pos > cur->begin);
+        int c1 = cur->at(detail.pos - 1);
+
+        int used = detail.pos - cur->begin + 1;
+        int c2 = another->at(k -used);
+
+        return std::max(c1, c2);
+    }
+
+    int retValue( range& src, int idx, aux& detail){
+
+        detail.origin = src.origin;
+        detail.pos = src.begin + idx;
+        return src.at(idx);
+    }
+
+#ifdef RECURSIVE_CALL
     int findtheKth( range a, range b, size_t k ){
         int ret = -1;
         
@@ -197,8 +259,8 @@ public:
         if ( (halfBig + small_front) >= (k+1) ){
 
             if (small_front){
-                range new_a(pBig->begin, pBig->mid(), pBig->src);
-                range new_b(pSmall->begin, pSmall->split, pSmall->src);
+                range new_a(pBig->begin, pBig->mid(), pBig->src, pBig->origin);
+                range new_b(pSmall->begin, pSmall->split, pSmall->src, pSmall->origin);
 
                 ret = findtheKth( new_a, new_b, k);
             }else{
@@ -220,19 +282,21 @@ public:
         return ret;
     }
 #else
-    int findtheKth( range a, range b, size_t k ){
+    int findtheKth( range a, range b, size_t k, aux& detail ){
         int ret = -1;
 
         for(;;){        
-#if 0
+
+        #ifdef SHOW_DETAIL
             a.show();
             b.show();
             std::cout << "K: " << k << std::endl;
-#endif
+        #endif
+
             if (a.size()== 0 || b.size()== 0) {
 
-                if (a.size() ) ret = a.at(k);
-                if (b.size() ) ret = b.at(k);
+                if (a.size() ) ret = retValue(a, k, detail);
+                if (b.size() ) ret = retValue(b, k, detail);
                 break;
             }
 
@@ -240,8 +304,29 @@ public:
 
                 if ((k>=0)&& (k<2)){
 
-                    if (k==0) ret = std::min(a.at(0), b.at(0));
-                    if (k==1) ret = std::max(a.at(0), b.at(0));
+                    if (k==0){
+
+                        if(a.at(0)<= b.at(0)){
+
+                            ret = retValue(a, 0, detail);
+
+                        }else{
+
+                            ret = retValue(b, 0, detail);
+                        }
+
+                    }
+                    if (k==1){
+
+                        if(a.at(0)>= b.at(0)){
+
+                            ret = retValue(a, 0, detail);
+
+                        }else{
+
+                            ret = retValue(b, 0, detail);
+                        }
+                    }
                 }
                 break;
             }
@@ -271,30 +356,36 @@ public:
             if ( (halfBig + small_front) >= (k+1) ){
 
                 if (small_front){
-                    range new_a(pBig->begin, pBig->mid(), pBig->src);
-                    range new_b(pSmall->begin, pSmall->split, pSmall->src);
+                    range new_a(pBig->begin, pBig->mid(), pBig->src, pBig->origin);
+                    range new_b(pSmall->begin, pSmall->split, pSmall->src, pSmall->origin);
 
                     a = new_a;
                     b = new_b;
                     //ret = findtheKth( new_a, new_b, k);
                 }else{
-                    ret = pBig->at(k);
+
+                    ret = retValue(*pBig, k, detail);
                     break;
                 }
 
             }else{
 
-                range new_a(pBig->mid()+1, pBig->end, pBig->src);
+                range new_a(pBig->mid()+1, pBig->end, pBig->src, pBig->origin);
 
                 if (small_back){
-                    range new_b((pSmall->split < pSmall->begin)? pSmall->begin : pSmall->split + 1, pSmall->end, pSmall->src);
+                    range new_b((pSmall->split < pSmall->begin)? pSmall->begin : pSmall->split + 1, pSmall->end, pSmall->src, pSmall->origin);
 
                     a = new_a;
                     b = new_b;
                     k -=(halfBig + small_front);
                     //ret = findtheKth( new_a, new_b, k - halfBig - small_front);
                 }else{
-                    if (new_a.size()) ret = new_a.at(k - halfBig - small_front);
+                    int tmp = k - halfBig - small_front;
+
+                    if (new_a.size()){
+
+                        ret = retValue(new_a, tmp, detail);
+                    }
                     break;
                 }
             }
