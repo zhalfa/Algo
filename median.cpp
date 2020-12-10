@@ -5,7 +5,7 @@
 #include <iostream>
 
 #define TRY_FAST
-//#define RECURSIVE_CALL
+#define RECURSIVE_CALL
 
 using std::vector;
 
@@ -215,13 +215,13 @@ public:
     }
 
 #ifdef RECURSIVE_CALL
-    int findtheKth( range a, range b, size_t k ){
+    int findtheKth( range a, range b, size_t k, aux& detail ){
         int ret = -1;
         
         if (a.size()== 0 || b.size()== 0) {
 
-            if (a.size() ) ret = a.at(k);
-            if (b.size() ) ret = b.at(k);
+            if (a.size() ) ret = retValue(a, k, detail);
+            if (b.size() ) ret = retValue(b, k, detail);
             return ret;
         }
 
@@ -229,8 +229,30 @@ public:
 
             if ((k>=0)&& (k<2)){
 
-                if (k==0) return std::min(a.at(0), b.at(0));
-                if (k==1) return std::max(a.at(0), b.at(0));
+                if (k==0){
+
+                    if(a.at(0)<= b.at(0)){
+
+                        ret = retValue(a, 0, detail);
+
+                    }else{
+
+                        ret = retValue(b, 0, detail);
+                    }
+
+                }
+                if (k==1){
+
+                    if(a.at(0)>= b.at(0)){
+
+                        ret = retValue(a, 0, detail);
+
+                    }else{
+
+                        ret = retValue(b, 0, detail);
+                    }
+                }
+                return ret;
             }
         }
     
@@ -262,21 +284,21 @@ public:
                 range new_a(pBig->begin, pBig->mid(), pBig->src, pBig->origin);
                 range new_b(pSmall->begin, pSmall->split, pSmall->src, pSmall->origin);
 
-                ret = findtheKth( new_a, new_b, k);
+                ret = findtheKth( new_a, new_b, k, detail);
             }else{
-                ret = pBig->at(k);
+                ret = retValue(*pBig, k, detail);
             }
 
         }else{
 
-            range new_a(pBig->mid()+1, pBig->end, pBig->src);
+            range new_a(pBig->mid()+1, pBig->end, pBig->src, pBig->origin);
 
             if (small_back){
-                range new_b((pSmall->split < pSmall->begin)? pSmall->begin : pSmall->split + 1, pSmall->end, pSmall->src);
+                range new_b((pSmall->split < pSmall->begin)? pSmall->begin : pSmall->split + 1, pSmall->end, pSmall->src, pSmall->origin);
 
-                ret = findtheKth( new_a, new_b, k - halfBig - small_front);
+                ret = findtheKth( new_a, new_b, k - halfBig - small_front, detail);
             }else{
-                if (new_a.size()) ret = new_a.at(k - halfBig - small_front);
+                if (new_a.size()) ret = retValue( new_a, k - halfBig - small_front, detail);
             }
         }
         return ret;
