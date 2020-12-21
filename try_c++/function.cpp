@@ -2,13 +2,13 @@
 
 #ifdef TEST
 
-    #define XXXX -> void
     #define TYPE auto
+    #define XXXX -> void
 
 #else
 
-    #define XXXX  
     #define TYPE void
+    #define XXXX  
 
 #endif
 
@@ -18,10 +18,15 @@
 
 struct F{
 
-    [[noreturn]] virtual inline TYPE f(const unsigned long int* const) XXXX const noexcept;
+    [[noreturn]] virtual inline TYPE f_name(const unsigned long int* const) XXXX const noexcept {};
 
 };
 
+#include <string>
+
+using std::string;
+
+constexpr auto convert(int) -> string;
 
 int main(){
 
