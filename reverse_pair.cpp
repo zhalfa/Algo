@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 //#define USING_STL
-#define SHOW_DETAIL
+//#define SHOW_DETAIL
 
 #ifndef USING_STL
 int* g_src = nullptr;
@@ -16,6 +16,49 @@ int compare (const void * a, const void * b){
     return ( g_src[*(int*)a] - g_src[*(int*)b] );
 }
 #endif
+
+int find_first(const int* src, int begin, int end, int val, const int* act){
+
+    const int* vec = src;
+    int s = begin;
+    int e = end;
+
+    int ret = -1;
+    while(s <= e){
+
+        int mid = (s+e)/2;
+
+        if ( val < act[ vec[mid] ] ){
+
+            e = mid - 1;
+
+        }else if (val == act[ vec[mid] ] ){
+
+            while((mid <= end) && (val == act[ vec[mid] ])){
+
+                ++mid;
+            }
+            ret = mid;
+            break;
+
+        }else{
+
+            s = mid + 1;
+        }
+
+        if (s > e){
+
+            if (val < act[ vec[mid]])
+                ret = mid;
+            else
+                ret = mid + 1;
+        }
+    }
+
+    if ( ret > end ) ret = -1;
+
+    return ret;
+}
 
 class Solution {
 
@@ -40,8 +83,32 @@ public:
 
         int size = nums.size();
         int *data = nums.data();
+
+        int cnt = 0;
+        for(int i = 0; i < size; i++){
+
+            for(int k = i+1; k < size; k++){
+
+                if (data[i] > data[k]*2){
+
+                    cnt++;
+#ifdef SHOW_DETAIL
+                    std::cout << i << " : " <<  k << "------" << data[i] << " : " << data[k] << std::endl;
+#endif
+                }
+            }
+        }
+        return cnt;
+    }
+
+    //optimization version
+    int reversePairs2(std::vector<int>& nums) {
+
+        int size = nums.size();
+        int *data = nums.data();
         int *index = nullptr;
 
+        if (0 == size) return 0;
 #ifdef USING_STL
         std::vector<int> index_v;
 #else
@@ -65,18 +132,27 @@ public:
         qsort( index_d, size, sizeof(int), compare);
         index = index_d;
 #endif
+        find_first( index, 1, size-1, data[index[0]]*2, data); 
 
         int cnt = 0;
         for(int i = 0; i < size; i++){
 
-            for(int k = i+1; k < size; k++){
+            int c = index[i];
+            int val = data[c];
+            
+            int res = find_first( index, i+1, size-1, val*2, data);
 
-                if (data[i] > data[k]*2){
+            if (res >= 0) {
 
-                    cnt++;
+                for(int k = res; k < size; k++){
+
+                    if (c > index[k]){
+
+                        cnt++;
 #ifdef SHOW_DETAIL
-                    std::cout << i << " : " <<  k << "------" << data[i] << " : " << data[k] << std::endl;
+                        std::cout << c << " : " <<  k << "------" << data[c] << " : " << data[index[k]] << std::endl;
 #endif
+                    }
                 }
             }
         }
@@ -115,7 +191,9 @@ int main(){
     Solution sol;
 
     int res = sol.reversePairs( vct );
+    std::cout << "res = " << res << std::endl;
 
+    res = sol.reversePairs2( vct );
     std::cout << "res = " << res << std::endl;
 
     return 0;
