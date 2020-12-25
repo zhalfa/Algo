@@ -1,18 +1,72 @@
 #include <vector>
 #include <cstdlib>
 #include <iostream>
+#include <algorithm>
+#include <string>
+#include <stdlib.h>
+
+//#define USING_STL
+#define SHOW_DETAIL
+
+#ifndef USING_STL
+int* g_src = nullptr;
+
+int compare (const void * a, const void * b){
+
+    return ( g_src[*(int*)a] - g_src[*(int*)b] );
+}
+#endif
 
 class Solution {
 
 public:
+
+#ifdef USING_STL
+    struct helper{
+
+        helper(std::vector<int>& v): vct(v){};
+
+        bool operator()(int i, int k){
+
+            return vct[i] < vct[k];
+        }
+
+        std::vector<int>& vct;
+    };
+#endif
 
     //brute force version
     int reversePairs(std::vector<int>& nums) {
 
         int size = nums.size();
         int *data = nums.data();
-        int cnt = 0;
+        int *index = nullptr;
 
+#ifdef USING_STL
+        std::vector<int> index_v;
+#else
+        int index_d[size];
+#endif
+        for( auto i = 0; i < size; i++ ){
+
+#ifdef USING_STL
+            index_v.push_back( i );
+#else
+            index_d[i] = i;
+#endif
+        }
+
+#ifdef USING_STL
+        helper hlp(nums);
+        std::sort( index_v.begin(), index_v.end(), hlp );
+        index = index_v.data();
+#else
+        g_src = data;
+        qsort( index_d, size, sizeof(int), compare);
+        index = index_d;
+#endif
+
+        int cnt = 0;
         for(int i = 0; i < size; i++){
 
             for(int k = i+1; k < size; k++){
@@ -20,10 +74,26 @@ public:
                 if (data[i] > data[k]*2){
 
                     cnt++;
-                    //std::cout << i << " : " <<  k << "------" << data[i] << " : " << data[k] << std::endl;
+#ifdef SHOW_DETAIL
+                    std::cout << i << " : " <<  k << "------" << data[i] << " : " << data[k] << std::endl;
+#endif
                 }
             }
         }
+
+#ifdef SHOW_DETAIL
+        std::string org, sorted, idx;
+        for ( auto i = 0; i < size; ++i ){
+
+            org += std::to_string(data[i]); org += " ; ";
+            sorted += std::to_string(data[index[i]]); sorted += " ; ";
+            idx += std::to_string(index[i]); idx += " ; ";
+        }
+
+        std::cout << org << std::endl;
+        std::cout << sorted << std::endl;
+        std::cout << idx << std::endl;
+#endif
         return cnt;        
     }
 };
@@ -34,9 +104,12 @@ int main(){
 
     std::vector<int> vct; 
 
+    int cnt = 0;
+
     for ( auto t: test_data ){
 
         vct.push_back( t );
+        if( ++cnt == 8 ) break;
     }
 
     Solution sol;
