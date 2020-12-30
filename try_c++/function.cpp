@@ -5,6 +5,8 @@
     #define TYPE auto
     #define XXXX -> void
 
+    // fails because of surfix : const and noexcept
+
 #else
 
     #define TYPE void
