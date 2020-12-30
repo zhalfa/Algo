@@ -14,11 +14,13 @@ int* g_src = nullptr;
 
 int compare (const void * a, const void * b){
 
-    return ( g_src[*(int*)a] - g_src[*(int*)b] );
+    long m = g_src[*(int*)a];
+    long n = g_src[*(int*)b];
+    return ( m - n );
 }
 #endif
 
-int find_first(const int* src, int begin, int end, int val, const int* act){
+int find_first(const int* src, int begin, int end, long val, const int* act){
 
     const int* vec = src;
     int s = begin;
@@ -89,8 +91,10 @@ public:
         for(int i = 0; i < size; i++){
 
             for(int k = i+1; k < size; k++){
-
-                if (data[i] > data[k]*2){
+            
+                long t = data[k];
+                t *= 2;
+                if (data[i] > t){
 
                     cnt++;
 #ifdef SHOW_DETAIL
@@ -138,7 +142,7 @@ public:
         for(int i = 0; i < size; i++){
 
             int c = index[i];
-            int val = data[c];
+            long val = data[c];
 
             int res;
             if ( val > 0 ){
@@ -236,8 +240,19 @@ void test_2(){
     assert( res == res2 );
 }
 
+void test_3(){
+
+    std::vector<int> vct = {2147483647,2147483647,2147483647,2147483647,2147483647,2147483647}; 
+
+    Solution sol;
+
+    int res = sol.reversePairs( vct );
+    int res2 = sol.reversePairs2( vct );
+    assert( res == res2 );
+}
 int main(){
 
+    test_3();
     test_2();
     test_1();
     test_0();
