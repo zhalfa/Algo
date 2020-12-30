@@ -139,8 +139,27 @@ public:
 
             int c = index[i];
             int val = data[c];
-            
-            int res = find_first( index, i+1, size-1, val*2, data);
+
+            int res;
+            if ( val > 0 ){
+
+                res = find_first( index, i+1, size-1, val*2, data);
+
+            }else if ( val < 0 ){
+
+                res = find_first( index, 0, size-1, val*2, data);
+
+            } else {
+                int p = i;
+                do{
+                    ++p;
+                    if ( p >= size ) break;
+
+                    val = data[index[p]];
+                }while ( val == 0 );
+
+                res = (p < size)? p : -1;
+            }
 
             if (res >= 0) {
 
@@ -206,9 +225,21 @@ void test_1(){
     assert( res == res2 );
 }
 
+void test_2(){
+
+    std::vector<int> vct = {8, -2, -5, 0, -5, 0, 0 }; 
+
+    Solution sol;
+
+    int res = sol.reversePairs( vct );
+    int res2 = sol.reversePairs2( vct );
+    assert( res == res2 );
+}
+
 int main(){
 
-//    test_1();
+    test_2();
+    test_1();
     test_0();
 
     return 0;
